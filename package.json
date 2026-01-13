@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/Jcalvert22/bug-free-rotary-phone-devops/issues"
   },
-  "homepage": "https://github.com/Jcalvert22/bug-free-rotary-phone-devops#readme"
+  "homepage": "https://github.com/Jcalvert22/bug-free-rotary-phone-devops#readme",
+  "dependencies": {
+    "express": "^5.2.1"
+  }
 }
