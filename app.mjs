@@ -6,11 +6,14 @@ import express from 'express'
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { readFile } from 'fs/promises';
+import { MongoClient , ServerApiVersion} from 'mongodb';
 
 const app = express()
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 //const files = fs.readFile('.');
+// const { MongoClient, ServerApiVersion } = require('mongodb');
+// const uri = "mongodb+srv://odie:TestUser123@cluster0.brctdnl.mongodb.net/?appName=Cluster0";
 
 const myVar = 'injected from server';
 
@@ -19,8 +22,31 @@ const myVar = 'injected from server';
 app.use(express.static(join(__dirname, 'public')));
 app.use(express.json()); 
 
+// Create a MongoClient with a MongoClientOptions object to set the Stable API version
+const client = new MongoClient(uri, {
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  }
+});
+
+async function run() {
+  try {
+    // Connect the client to the server	(optional starting in v4.7)
+    await client.connect();
+    // Send a ping to confirm a successful connection
+    await client.db("admin").command({ ping: 1 });
+    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+  } finally {
+    // Ensures that the client will close when you finish/error
+    await client.close();
+  }
+}
+run().catch(console.dir);
 
 // middlewares aka endpoints aka 'get to slash' {http verb} to slash { you name your endpoint}
+
 app.get('/', (req, res) => {
   //res.send('Hello Express'); //string response
   //res.sendFile('index.html');
