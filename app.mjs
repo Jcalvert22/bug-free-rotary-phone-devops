@@ -5,16 +5,18 @@
 import express from 'express'
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-//import { readFile } from 'fs';
-//import * as fs from 'node:fs';
+import { readFile } from 'fs/promistes';
 
 const app = express()
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 //const files = fs.readFile('.');
-let myVar = 'demo purposes';
+
+const myVar = 'injected from server';
 
 
+
+app.use(express.static(join(__dirname, 'public')));
 app.use(express.json()); 
 // middlewares aka endpoints aka 'get to slash' {http verb} to slash { you name your endpoint}
 app.get('/', (req, res) => {
@@ -23,6 +25,18 @@ app.get('/', (req, res) => {
   res.sendFile(join(__dirname,'public','index.html'));
 })
 
+
+app.get('/inject', (req, res) => {
+  readFile(join(__dirname, 'public', 'index.html'), 'utf8')
+    .then(html => {
+
+      const injectedHtml = html.replace ('{{myVar}}', myVar);
+      res.send(injectedHtml);
+    })
+    .catch(err => {
+      res.status(500).send('Error loading page');
+    });
+})
 
 app.get('/api/json', (req,res) =>{
   const myVar = 'Hello from server!';
@@ -37,6 +51,13 @@ app.post('/api/body', (req, res) => {
 
 
 
+app.get('/api/query', (req, res) => {
+  console.log("client request with query param:", req.query.name); 
+  res.json({"message": req.query.name});
+});
+
+app.get("client request wiht URL param:", req.params.iaddasfsd);
+res.json({"message": `Hi, ${req.params.iaddasfsd}, How are you?`});
 
 //start the server.
 app.listen(3000, () => {
