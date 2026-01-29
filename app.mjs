@@ -5,7 +5,7 @@
 import express from 'express'
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import { readFile } from 'fs/promistes';
+import { readFile } from 'fs/promises';
 
 const app = express()
 const __filename = fileURLToPath(import.meta.url);
@@ -18,6 +18,8 @@ const myVar = 'injected from server';
 
 app.use(express.static(join(__dirname, 'public')));
 app.use(express.json()); 
+
+
 // middlewares aka endpoints aka 'get to slash' {http verb} to slash { you name your endpoint}
 app.get('/', (req, res) => {
   //res.send('Hello Express'); //string response
@@ -47,7 +49,7 @@ app.post('/api/body', (req, res) => {
   console.log("the body:", req.body);
   console.log("client request with body param:", req.body.name); 
   res.json({"name": req.query.name});
-});
+})
 
 
 
@@ -56,8 +58,10 @@ app.get('/api/query', (req, res) => {
   res.json({"message": req.query.name});
 });
 
-app.get("client request wiht URL param:", req.params.iaddasfsd);
-res.json({"message": `Hi, ${req.params.iaddasfsd}, How are you?`});
+app.get('/api/url/:iaddasfsd', (req,res) => {
+  console.log(req.params.iaddasfsd);
+  res.json({"message": `Hi, ${req.params.iaddasfsd}, How are you?`});
+}); 
 
 //start the server.
 app.listen(3000, () => {
@@ -72,7 +76,7 @@ app.listen(3000, () => {
 
 // app.get('/inject', (req, res) => {
 //   // Inject a server variable into barry.html
-//   fs.files(join(__dirname, 'public', 'index.html'), 'utf8')
+//   readFile.files(join(__dirname, 'public', 'index.html'), 'utf8')
 //     .then(html => {
 //       // Replace a placeholder in the HTML (e.g., {{myVar}})
 //       const injectedHtml = html.replace('{{myVar}}', myVar);
