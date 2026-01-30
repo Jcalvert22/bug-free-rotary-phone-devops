@@ -3,18 +3,19 @@
 //es6 syntax => import { express } from 'module-name'
 
 import express from 'express'
+import 'dotenv/config';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { readFile } from 'fs/promises';
 import { MongoClient , ServerApiVersion} from 'mongodb';
+import dns from "node:dns/promises";
+dns.setServers(["1.1.1.1"]);
 
 const app = express()
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 //const files = fs.readFile('.');
-// const { MongoClient, ServerApiVersion } = require('mongodb');
-// const uri = "mongodb+srv://odie:TestUser123@cluster0.brctdnl.mongodb.net/?appName=Cluster0";
-
+const uri = process.env.MONGO_URI;
 const myVar = 'injected from server';
 
 
