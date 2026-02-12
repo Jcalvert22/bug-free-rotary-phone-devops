@@ -29,7 +29,7 @@ jobs:
           APP_DIR:  ${{ vars.APP_DIR }}
           PM2_NAME: ${{ vars.PM2_NAME }}
         run: |
-          ssh -i ~/.ssh/rotary_phone -o BatchMode=yes -T "$SSH_USER@$SSH_HOST" <<EOF
+          ssh -i ~/.ssh/id_rsa -o BatchMode=yes -T "$SSH_USER@$SSH_HOST" <<EOF
             set -e
 
             cd "$APP_DIR"
