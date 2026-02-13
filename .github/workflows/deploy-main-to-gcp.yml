@@ -25,7 +25,7 @@ jobs:
         env:
           SSH_USER: ${{ secrets.SSH_USER }}
           SSH_HOST: ${{ secrets.SSH_HOST }}
-          APP_DIR: ${{ vars.APP_DIR }}
+          APP_DIR: /home/jacec/bug-free-rotary-phone-devops
           PM2_NAME: ${{ vars.PM2_NAME }}
         run: |
           ssh -i ~/.ssh/id_rsa -T "$SSH_USER@$SSH_HOST" << 'EOF'
