@@ -1,15 +1,38 @@
-name: test-yaml
+name: deploy-main-to-gcp.yml
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 jobs:
-  test:
+  deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Test
-        run: echo "YAML works"
+      - name: Prepare SSH
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
 
+      - name: Deploy over SSH
+        env:
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          APP_DIR: ${{ vars.APP_DIR }}
+          PM2_NAME: ${{ vars.PM2_NAME }}
+        run: |
+          ssh -i ~/.ssh/id_rsa -T "$SSH_USER@$SSH_HOST" <<EOF
+set -e
 
+cd "$APP_DIR"
+git pull
+sudo npm ci
 
+sudo -u jacecalvert04 pm2 reload "$PM2_NAME" || sudo -u jacecalvert04 pm2 start app.mjs --name "$PM2_NAME"
+sudo -u jacecalvert04 pm2 save
 
+EOF
