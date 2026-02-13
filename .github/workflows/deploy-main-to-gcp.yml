@@ -19,7 +19,6 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
 
-          # safer than StrictHostKeyChecking=no
           ssh-keyscan -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
           chmod 644 ~/.ssh/known_hosts
 
@@ -32,15 +31,15 @@ jobs:
           PM2_NAME: ${{ vars.PM2_NAME }}
         run: |
           ssh -i ~/.ssh/id_rsa -T "$SSH_USER@$SSH_HOST" <<EOF
-          set -e
+set -e
 
-          cd "$APP_DIR"
+cd "$APP_DIR"
 
-          git pull
-          sudo npm ci
+git pull
+sudo npm ci
 
-          pm2 delete "$PM2_NAME" || true
-          pm2 start -f app.mjs --name "$PM2_NAME"
+pm2 delete "$PM2_NAME" || true
+pm2 start -f app.mjs --name "$PM2_NAME"
 
-          pm2 save
-          EOF
+pm2 save
+EOF
