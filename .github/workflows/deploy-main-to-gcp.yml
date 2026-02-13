@@ -33,7 +33,10 @@ jobs:
           set -e
 
           cd "$APP_DIR"
-
+          
+          pwd 
+          ls -la 
+          
           git pull
           sudo npm ci
 
