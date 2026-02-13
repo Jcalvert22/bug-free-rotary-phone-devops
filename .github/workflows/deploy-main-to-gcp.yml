@@ -38,7 +38,7 @@ cd "$APP_DIR"
 git pull
 sudo npm ci
 
-pm2 reload "$PM2_NAME" || pm2 start app.mjs --name "$PM2_NAME"
-pm2 save
+sudo -u jacecalvert04 pm2 reload "$PM2_NAME" || sudo -u jacecalvert04 pm2 start app.mjs --name "$PM2_NAME"
+sudo -u jacecalvert04 pm2 save
 
 EOF
