@@ -28,6 +28,9 @@ jobs:
           ssh -i ~/.ssh/id_rsa -T "$SSH_USER@$SSH_HOST" <<EOF
 set -e
 
+echo "Heredoc Works"
+EOF
+
 cd "$APP_DIR"
 git pull
 sudo npm ci
