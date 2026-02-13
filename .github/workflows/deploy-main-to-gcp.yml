@@ -1,3 +1,5 @@
+name: deploy-main-to-gcp.yml
+
 on:
   push:
     branches: [main]
@@ -8,12 +10,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Configure Git safe directory
-        run: git config --global --add safe.directory $GITHUB_WORKSPACE
-
       - name: Prepare SSH
         shell: bash
         run: |
@@ -35,14 +31,13 @@ jobs:
           APP_DIR:  ${{ vars.APP_DIR }}
           PM2_NAME: ${{ vars.PM2_NAME }}
         run: |
-          ssh -i ~/.ssh/id_rsa -o BatchMode=yes -T "$SSH_USER@$SSH_HOST" <<EOF
+          ssh -i ~/.ssh/id_rsa -T "$SSH_USER@$SSH_HOST" <<EOF
             set -e
 
             cd "$APP_DIR"
-            git config --local --add safe.directory "$APP_DIR"
 
             git pull
-            npm ci
+            sudo npm ci
 
             pm2 delete "$PM2_NAME" || true
             pm2 start -f app.mjs --name "$PM2_NAME"
