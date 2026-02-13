@@ -37,5 +37,11 @@ jobs:
             pm2 delete "$PM2_NAME" || true
             pm2 start -f app.mjs --name "$PM2_NAME"
             pm2 save
+<<<<<<< HEAD
           EOF
 
+=======
+EOF
+
+
+>>>>>>> 4aaacb0367d7eccaf78b06e5fe89999d0372136a
