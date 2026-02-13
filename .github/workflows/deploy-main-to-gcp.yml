@@ -15,8 +15,8 @@ jobs:
         run: |
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/rotary-phone
+          chmod 600 ~/.ssh/rotary-phone
           ssh-keyscan -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
           chmod 644 ~/.ssh/known_hosts
 
@@ -28,7 +28,7 @@ jobs:
           APP_DIR: /home/jacec/bug-free-rotary-phone-devops
           PM2_NAME: ${{ vars.PM2_NAME }}
         run: |
-          ssh -i ~/.ssh/id_rsa -T "jacec@$SSH_HOST" << EOF
+          ssh -i ~/.ssh/rotary-phone -T "jacec@$SSH_HOST" << EOF
             set -e
 
             echo "WHOAMI:"
