@@ -11,17 +11,14 @@ jobs:
 
     steps:
       - name: Prepare SSH
-        shell: bash
         run: |
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
-          chmod 644 ~/.ssh/known_hosts
 
       - name: Deploy over SSH
-        shell: bash
         env:
           SSH_USER: ${{ secrets.SSH_USER }}
           SSH_HOST: ${{ secrets.SSH_HOST }}
@@ -32,7 +29,6 @@ jobs:
 set -e
 
 cd "$APP_DIR"
-
 git pull
 sudo npm ci
 
