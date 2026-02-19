@@ -32,31 +32,120 @@ const WORKOUTS = [
   { name: 'Cycling', equipment: ['Stationary Bike'] },
 ];
 
+const EXERCISES = [
+  {
+    "name": "Push-up",
+    "equipment": ["Bodyweight"],
+    "muscle_group": "Chest"
+  },
+  {
+    "name": "Incline Push-up",
+    "equipment": ["Bodyweight", "Bench"],
+    "muscle_group": "Upper Chest"
+  },
+  {
+    "name": "Triceps Dip",
+    "equipment": ["Bodyweight", "Bench"],
+    "muscle_group": "Triceps"
+  },
+  {
+    "name": "Bicep Curl",
+    "equipment": ["Dumbbells", "Barbell", "Resistance Bands"],
+    "muscle_group": "Biceps"
+  },
+  {
+    "name": "Wrist Curl",
+    "equipment": ["Dumbbells", "Barbell"],
+    "muscle_group": "Forearms"
+  },
+  {
+    "name": "Pull-up",
+    "equipment": ["Pull-up Bar"],
+    "muscle_group": "Back"
+  },
+  {
+    "name": "Shrug",
+    "equipment": ["Dumbbells", "Barbell"],
+    "muscle_group": "Traps"
+  },
+  {
+    "name": "Squat",
+    "equipment": ["Bodyweight", "Barbell", "Dumbbells"],
+    "muscle_group": "Quads"
+  },
+  {
+    "name": "Calf Raise",
+    "equipment": ["Bodyweight", "Dumbbells"],
+    "muscle_group": "Calves"
+  },
+  {
+    "name": "Hamstring Curl",
+    "equipment": ["Resistance Bands"],
+    "muscle_group": "Hamstrings"
+  }
+];
+
+const MUSCLE_GROUPS = [
+  'Chest',
+  'Upper Chest',
+  'Triceps',
+  'Biceps',
+  'Forearms',
+  'Back',
+  'Traps',
+  'Quads',
+  'Calves',
+  'Hamstrings'
+];
+
 app.use(express.urlencoded({ extended: true }));
 
 app.get('/', (req, res) => {
   const equipmentOptions = EQUIPMENT_LIST.map(eq => `<label><input type="checkbox" name="equipment" value="${eq}"> ${eq}</label><br>`).join('');
+  const muscleOptions = MUSCLE_GROUPS.map(mg => `<label><input type="checkbox" name="muscle" value="${mg}"> ${mg}</label><br>`).join('');
   res.send(`
     <h1>Starter Gym Planner</h1>
     <form method="POST" action="/plan">
       <p>Select the equipment you have access to:</p>
       ${equipmentOptions}
-      <button type="submit">Build My Plan123</button>
+      <hr>
+      <p>Select the muscle groups you want to hit:</p>
+      ${muscleOptions}
+      <hr>
+      <p>
+        <label>
+          <input type="radio" name="mode" value="dieting" checked> Dieting (High reps, low weight)
+        </label>
+        <label>
+          <input type="radio" name="mode" value="bulking"> Bulking (Low reps, high weight)
+        </label>
+      </p>
+      <button type="submit">Build My Plan</button>
     </form>
   `);
 });
 
 app.post('/plan', (req, res) => {
   let selected = req.body.equipment;
+  let selectedMuscles = req.body.muscle;
+  let mode = req.body.mode || 'dieting';
   if (!selected) selected = [];
   if (!Array.isArray(selected)) selected = [selected];
-  const plan = WORKOUTS.filter(w => w.equipment.some(eq => selected.includes(eq)));
+  if (!selectedMuscles) selectedMuscles = [];
+  if (!Array.isArray(selectedMuscles)) selectedMuscles = [selectedMuscles];
+
+  const repRange = mode === 'bulking' ? '4-8 reps, heavy weight' : '12-20 reps, light/moderate weight';
+
+  const plan = EXERCISES.filter(ex =>
+    ex.equipment.some(eq => selected.includes(eq) || (eq === "Bodyweight" && selected.includes("Bodyweight Only"))) &&
+    selectedMuscles.includes(ex.muscle_group)
+  );
   const planHtml = plan.length
-    ? `<ul>${plan.map(w => `<li>${w.name} (${w.equipment.join(', ')})</li>`).join('')}</ul>`
-    : '<p>No workouts available for selected equipment.</p>';
+    ? `<ul>${plan.map(ex => `<li>${ex.name} (${ex.equipment.join(', ')}) - ${ex.muscle_group} <br><strong>Recommended: ${repRange}</strong></li>`).join('')}</ul>`
+    : '<p>No workouts available for selected equipment and muscle group.</p>';
   res.send(`
     <h1>Your Custom Gym Plan</h1>
-    <p>Based on your equipment:</p>
+    <p>Based on your equipment, muscle group(s), and goal (${mode === 'bulking' ? 'Bulking' : 'Dieting'}):</p>
     ${planHtml}
     <a href="/">Back</a>
   `);
