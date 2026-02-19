@@ -48,7 +48,7 @@ app.get('/', (req, res) => {
   const equipmentOptions = EQUIPMENT_LIST.map(eq => `<label><input type="checkbox" name="equipment" value="${eq}"> ${eq}</label><br>`).join('');
   const muscleOptions = MUSCLE_GROUPS.map(mg => `<label><input type="checkbox" name="muscle" value="${mg}"> ${mg}</label><br>`).join('');
   res.send(`
-    <h1>Starter Gym Planner</h1>
+    <h1>Starter Gym Planner123</h1>
     <form method="POST" action="/plan">
       <p>Select the equipment you have access to:</p>
       ${equipmentOptions}
