@@ -41,7 +41,7 @@ app.get('/', (req, res) => {
     <form method="POST" action="/plan">
       <p>Select the equipment you have access to:</p>
       ${equipmentOptions}
-      <button type="submit">Build My Plan</button>
+      <button type="submit">Build My Plan123</button>
     </form>
   `);
 });
