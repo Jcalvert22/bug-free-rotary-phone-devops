@@ -1,13 +1,9 @@
-//app.js
-//es5 syntax => const express = require('express')
-//es6 syntax => import { express } from 'module-name'
+import express from 'express';
 
-import express from 'express'
+const app = express();
 
-const app = express()
+app.use(express.urlencoded({ extended: true }));
 
-
-// Basic equipment and workout plan logic
 const EQUIPMENT_LIST = [
   'Dumbbells',
   'Barbell',
@@ -19,20 +15,6 @@ const EQUIPMENT_LIST = [
   'Stationary Bike',
   'Bodyweight Only'
 ];
-
-const WORKOUTS = [
-  { name: 'Push-ups', equipment: ['Bodyweight Only'] },
-  { name: 'Squats', equipment: ['Bodyweight Only', 'Dumbbells', 'Barbell'] },
-  { name: 'Bench Press', equipment: ['Barbell', 'Bench', 'Dumbbells'] },
-  { name: 'Deadlift', equipment: ['Barbell', 'Dumbbells'] },
-  { name: 'Pull-ups', equipment: ['Pull-up Bar'] },
-  { name: 'Kettlebell Swings', equipment: ['Kettlebell'] },
-  { name: 'Banded Rows', equipment: ['Resistance Bands'] },
-  { name: 'Running', equipment: ['Treadmill'] },
-  { name: 'Cycling', equipment: ['Stationary Bike'] },
-];
-
-const EXERCISES = JSON.parse(fs.readFileSync('./exercises.json', 'utf8'));
 
 const MUSCLE_GROUPS = [
   'Chest',
@@ -47,7 +29,20 @@ const MUSCLE_GROUPS = [
   'Hamstrings'
 ];
 
-app.use(express.urlencoded({ extended: true }));
+const EXERCISES = [
+  { name: "Push-up", equipment: ["Bodyweight"], muscle_group: "Chest" },
+  { name: "Incline Push-up", equipment: ["Bodyweight", "Bench"], muscle_group: "Upper Chest" },
+  { name: "Triceps Dip", equipment: ["Bodyweight", "Bench"], muscle_group: "Triceps" },
+  { name: "Bicep Curl", equipment: ["Dumbbells", "Barbell", "Resistance Bands"], muscle_group: "Biceps" },
+  { name: "Wrist Curl", equipment: ["Dumbbells", "Barbell"], muscle_group: "Forearms" },
+  { name: "Pull-up", equipment: ["Pull-up Bar"], muscle_group: "Back" },
+  { name: "Shrug", equipment: ["Dumbbells", "Barbell"], muscle_group: "Traps" },
+  { name: "Squat", equipment: ["Bodyweight", "Barbell", "Dumbbells"], muscle_group: "Quads" },
+  { name: "Calf Raise", equipment: ["Bodyweight", "Dumbbells"], muscle_group: "Calves" },
+  { name: "Hamstring Curl", equipment: ["Resistance Bands"], muscle_group: "Hamstrings" },
+  { name: "Bench Press", equipment: ["Barbell", "Bench", "Dumbbells"], muscle_group: "Chest" },
+  { name: "Deadlift", equipment: ["Barbell", "Dumbbells"], muscle_group: "Back" }
+];
 
 app.get('/', (req, res) => {
   const equipmentOptions = EQUIPMENT_LIST.map(eq => `<label><input type="checkbox" name="equipment" value="${eq}"> ${eq}</label><br>`).join('');
@@ -85,7 +80,6 @@ app.get('/', (req, res) => {
       <button type="submit">Build My Plan</button>
     </form>
     <script>
-      // Keep percent value in sync
       document.querySelector('input[type="range"]').addEventListener('input', function() {
         document.getElementById('percentVal').innerText = this.value;
       });
@@ -109,7 +103,6 @@ app.post('/plan', (req, res) => {
 
   const repRange = mode === 'bulking' ? '4-8 reps, heavy weight' : '12-20 reps, light/moderate weight';
 
-  // Helper to get recommended weight
   function getRecommendedWeight(ex) {
     let max = 0;
     if (ex.name.toLowerCase().includes('bench')) max = benchMax;
@@ -142,7 +135,6 @@ app.post('/plan', (req, res) => {
   `);
 });
 
-//start the server.
 app.listen(3000, () => {
-  console.log('Server is running on http://localhost:3000')
-})
+  console.log('Server is running on http://localhost:3000');
+});
