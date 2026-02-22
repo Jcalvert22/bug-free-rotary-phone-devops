@@ -153,7 +153,13 @@ app.get('/', (req, res) => {
       <link rel="stylesheet" href="/styles/main.css">
     </head>
     <body>
-      <div class="header">AllAroundAthlete</div>
+      <header class="header">
+        <div class="header-content">
+          <img src="/images/allaround-athlete-logo.png" alt="AllAroundAthlete Logo" class="logo">
+          <span class="app-title">all around athlete</span>
+          <nav class="header-tabs"><!-- future tabs --></nav>
+        </div>
+      </header>
       <div class="container">
         <h1>Starter Gym Planner</h1>
         <form method="POST" action="/plan">
@@ -325,7 +331,13 @@ app.post('/plan', (req, res) => {
       <link rel="stylesheet" href="/styles/main.css">
     </head>
     <body>
-      <div class="header">AllAroundAthlete</div>
+      <header class="header">
+        <div class="header-content">
+          <img src="/images/allaround-athlete-logo.png" alt="AllAroundAthlete Logo" class="logo">
+          <span class="app-title">all around athlete</span>
+          <nav class="header-tabs"><!-- future tabs --></nav>
+        </div>
+      </header>
       <div class="container">
         <h1>Your Custom Gym Plan</h1>
         <p>Based on your equipment, muscle group(s), and goal (${mode === 'bulking' ? 'Bulking' : 'Dieting'}):</p>
