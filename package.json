@@ -2,8 +2,7 @@
   "name": "bug-free-rotary-phone-devops",
   "version": "1.0.0",
   "description": "Spring 2026 CIS 486.",
-  "type": "module",
-  "main": "app.mjs",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
