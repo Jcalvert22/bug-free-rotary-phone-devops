@@ -1,5 +1,4 @@
 import express from 'express';
-import { getRecommendedWeight } from './functions/helpers.js';
 
 const app = express();
 
@@ -124,6 +123,20 @@ const BEGINNER_EQUIPMENT = [
 const BEGINNER_MUSCLES = [
   'Chest', 'Upper Chest', 'Triceps', 'Biceps', 'Forearms', 'Back', 'Quads', 'Calves', 'Hamstrings', 'Glutes', 'Abs', 'Shoulders'
 ];
+
+function getRecommendedWeight(ex, benchMax, squatMax, deadliftMax, percent, noMax) {
+  let max = 0;
+  if (ex.name.toLowerCase().includes('bench')) max = benchMax;
+  else if (ex.name.toLowerCase().includes('squat')) max = squatMax;
+  else if (ex.name.toLowerCase().includes('deadlift')) max = deadliftMax;
+  else if (ex.equipment.includes('Barbell') && ex.muscle_group === 'Chest') max = benchMax;
+  else if (ex.equipment.includes('Barbell') && ex.muscle_group === 'Quads') max = squatMax;
+  else if (ex.equipment.includes('Barbell') && ex.muscle_group === 'Back') max = deadliftMax;
+  if (noMax || max === 0) {
+    return 'Bodyweight or moderate weight';
+  }
+  return `${Math.round(max * percent / 100)} lbs (${percent}% of max)`;
+}
 
 app.get('/', (req, res) => {
   const equipmentOptions = EQUIPMENT_LIST.map(eq =>
