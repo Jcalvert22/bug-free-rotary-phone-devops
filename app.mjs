@@ -156,8 +156,8 @@ app.get('/', (req, res) => {
     <body>
       <header class="header">
         <div class="header-content">
-          <img src="/images/allaround-athlete-logo.png" alt="AllAroundAthlete Logo" style="height:90px;width:auto;margin-right:22px;background:transparent;border-radius:6px;display:block;">
-          <span style="font-size:1.2em;font-weight:700;color:#4f8cff;letter-spacing:2px;margin-right:32px;">All-Around Athlete</span>
+          <img src="/images/allaround-athlete-logo.png" alt="AllAroundAthlete Logo" class="logo">
+          <span class="app-title">AllAroundAthlete</span>
           <nav class="header-tabs"><!-- future tabs --></nav>
         </div>
       </header>
@@ -334,8 +334,8 @@ app.post('/plan', (req, res) => {
     <body>
       <header class="header">
         <div class="header-content">
-          <img src="/images/allaround-athlete-logo.png" alt="AllAroundAthlete Logo" style="height:90px;width:auto;margin-right:22px;background:transparent;border-radius:6px;display:block;">
-          <span style="font-size:1.2em;font-weight:700;color:#4f8cff;letter-spacing:2px;margin-right:32px;">All-Around Athlete</span>
+          <img src="/images/allaround-athlete-logo.png" alt="AllAroundAthlete Logo" class="logo">
+          <span class="app-title">AllAroundAthlete</span>
           <nav class="header-tabs"><!-- future tabs --></nav>
         </div>
       </header>
