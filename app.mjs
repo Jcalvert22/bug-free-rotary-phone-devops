@@ -113,6 +113,14 @@ app.get('/', (req, res) => {
         input[type="range"] {
           width: 120px;
         }
+        .max-disabled {
+          background: #232526 !important;
+          color: #888 !important;
+          border-color: #444 !important;
+        }
+        .max-label-disabled {
+          color: #888 !important;
+        }
         button {
           background: #4f8cff;
           color: #fff;
@@ -155,15 +163,15 @@ app.get('/', (req, res) => {
           <div style="margin-bottom:12px;">
             <label class="option"><input type="checkbox" id="noMax" name="no_max"> I don't know my max weights</label>
             <div id="maxInputs">
-              <label>Bench Press Max (lbs): <input type="number" name="bench_max" min="0" step="1" required></label><br>
-              <label>Squat Max (lbs): <input type="number" name="squat_max" min="0" step="1" required></label><br>
-              <label>Deadlift Max (lbs): <input type="number" name="deadlift_max" min="0" step="1" required></label>
+              <label class="max-label" id="benchLabel">Bench Press Max (lbs): <input type="number" class="max-input" name="bench_max" min="0" step="1" required></label><br>
+              <label class="max-label" id="squatLabel">Squat Max (lbs): <input type="number" class="max-input" name="squat_max" min="0" step="1" required></label><br>
+              <label class="max-label" id="deadliftLabel">Deadlift Max (lbs): <input type="number" class="max-input" name="deadlift_max" min="0" step="1" required></label>
             </div>
           </div>
           <hr>
           <div style="margin-bottom:12px;">
-            <label>Recommended % of Max Weight: 
-              <input type="range" name="percent" min="50" max="90" value="70" oninput="document.getElementById('percentVal').innerText = this.value">
+            <label class="max-label" id="percentLabel">Recommended % of Max Weight: 
+              <input type="range" class="max-input" name="percent" min="50" max="90" value="70" oninput="document.getElementById('percentVal').innerText = this.value">
               <span id="percentVal">70</span>%
             </label>
           </div>
@@ -176,10 +184,15 @@ app.get('/', (req, res) => {
         });
         document.getElementById('noMax').addEventListener('change', function() {
           const disabled = this.checked;
-          document.querySelectorAll('#maxInputs input').forEach(inp => {
+          document.querySelectorAll('.max-input').forEach(inp => {
             inp.disabled = disabled;
             inp.required = !disabled;
+            inp.classList.toggle('max-disabled', disabled);
           });
+          document.querySelectorAll('.max-label').forEach(lbl => {
+            lbl.classList.toggle('max-label-disabled', disabled);
+          });
+          document.getElementById('percentLabel').classList.toggle('max-label-disabled', disabled);
         });
       </script>
     </body>
