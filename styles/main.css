@@ -1,8 +1,8 @@
 body { background: #181a1b; color: #f3f3f3; font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; }
 .header { width: 100%; background: #232526; color: #4f8cff; font-size: 1.5em; font-weight: 700; padding: 0; text-align: left; letter-spacing: 2px; box-shadow: 0 2px 8px #0004; }
 .header-content { display: flex; align-items: center; height: 64px; max-width: 1200px; margin: 0 auto; padding: 0 24px; }
-.logo { height: 44px; width: auto; margin-right: 18px; background: transparent; border-radius: 6px; display: block; }
-.app-title { font-size: 1.4em; font-weight: 700; color: #4f8cff; letter-spacing: 2px; text-transform: lowercase; margin-right: 32px; }
+.logo { height: 64px; width: auto; margin-right: 22px; background: transparent; border-radius: 6px; display: block; }
+.app-title { font-size: 2em; font-weight: 800; color: #4f8cff; letter-spacing: 2px; text-transform: uppercase; margin-right: 32px; }
 .header-tabs { flex: 1; display: flex; align-items: center; justify-content: flex-end; min-width: 120px; /* Placeholder for future tabs */ }
 .container { max-width: 420px; margin: 40px auto; background: #232526; border-radius: 12px; box-shadow: 0 4px 24px #000a; padding: 32px 28px 24px 28px; }
 h1 { font-size: 1.7em; font-weight: 600; margin-bottom: 18px; letter-spacing: 1px; }
