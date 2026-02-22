@@ -2,6 +2,7 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { EXERCISES } from './data/exercises.js';
+import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -37,7 +38,7 @@ const MUSCLE_GROUPS = [
 ];
 
 function renderTemplate(file, replacements) {
-  let html = require('fs').readFileSync(file, 'utf8');
+  let html = fs.readFileSync(file, 'utf8');
   for (const key in replacements) {
     html = html.replace(`<!-- ${key} -->`, replacements[key]);
   }
