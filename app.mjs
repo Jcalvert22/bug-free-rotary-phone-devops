@@ -210,9 +210,57 @@ const EXERCISES = [
   { name: "SkiErg Pull", equipment: ["SkiErg"], muscle_group: "Back", howto: "Pull handles down in a skiing motion.", video: "" }
 ];
 
+// Add these lists for beginner-friendly equipment and muscle groups
+const BEGINNER_EQUIPMENT = [
+  'Dumbbells',
+  'Bench',
+  'Resistance Bands',
+  'Bodyweight Only',
+  'Stationary Bike',
+  'Treadmill',
+  'Kettlebell',
+  'Pull-up Bar',
+  'Medicine Ball',
+  'Step-up Box',
+  'Incline Bench',
+  'Flat Bench',
+  'Jump Rope',
+  'Seated Row Machine',
+  'Lat Pulldown Machine',
+  'Leg Press Machine',
+  'Leg Extension Machine',
+  'Leg Curl Machine',
+  'Chest Press Machine',
+  'Shoulder Press Machine',
+  'Pec Deck Machine',
+  'Ab Crunch Machine',
+  'Stepper',
+  'Elliptical',
+  'Rowing Machine'
+];
+
+const BEGINNER_MUSCLES = [
+  'Chest',
+  'Upper Chest',
+  'Triceps',
+  'Biceps',
+  'Forearms',
+  'Back',
+  'Quads',
+  'Calves',
+  'Hamstrings',
+  'Glutes',
+  'Abs',
+  'Shoulders'
+];
+
 app.get('/', (req, res) => {
-  const equipmentOptions = EQUIPMENT_LIST.map(eq => `<label class="option"><input type="checkbox" name="equipment" value="${eq}"> ${eq}</label>`).join('');
-  const muscleOptions = MUSCLE_GROUPS.map(mg => `<label class="option"><input type="checkbox" name="muscle" value="${mg}"> ${mg}</label>`).join('');
+  const equipmentOptions = EQUIPMENT_LIST.map(eq =>
+    `<label class="option beginner-equip" data-equip="${eq}"><input type="checkbox" name="equipment" value="${eq}"> ${eq}</label>`
+  ).join('');
+  const muscleOptions = MUSCLE_GROUPS.map(mg =>
+    `<label class="option beginner-muscle" data-muscle="${mg}"><input type="checkbox" name="muscle" value="${mg}"> ${mg}</label>`
+  ).join('');
   res.send(`
     <html>
     <head>
@@ -230,6 +278,8 @@ app.get('/', (req, res) => {
         input[type="range"] { background: #232526; color: #f3f3f3; border: 1px solid #333; border-radius: 5px; width: 120px; }
         .max-disabled { background: #232526 !important; color: #888 !important; border-color: #444 !important; }
         .max-label-disabled { color: #888 !important; }
+        .disabled-option { color: #888 !important; pointer-events: none; opacity: 0.6; }
+        .disabled-option input { pointer-events: none; }
         button { background: #4f8cff; color: #fff; border: none; border-radius: 6px; padding: 10px 22px; font-size: 1em; font-weight: 500; cursor: pointer; margin-top: 18px; transition: background 0.2s; }
         button:hover { background: #2563eb; }
         label { user-select: none; }
@@ -241,6 +291,9 @@ app.get('/', (req, res) => {
       <div class="container">
         <h1>Starter Gym Planner</h1>
         <form method="POST" action="/plan">
+          <div style="margin-bottom:12px;">
+            <label class="option"><input type="checkbox" id="beginnerMode" name="beginner_mode"> Beginner Mode (recommended for new lifters)</label>
+          </div>
           <p style="margin-bottom:8px;">Equipment:</p>
           ${equipmentOptions}
           <hr>
@@ -276,6 +329,7 @@ app.get('/', (req, res) => {
         </form>
       </div>
       <script>
+        // Grey out maxes if "I don't know my max weights" is checked
         document.querySelector('input[type="range"]').addEventListener('input', function() {
           document.getElementById('percentVal').innerText = this.value;
         });
@@ -290,6 +344,36 @@ app.get('/', (req, res) => {
             lbl.classList.toggle('max-label-disabled', disabled);
           });
           document.getElementById('percentLabel').classList.toggle('max-label-disabled', disabled);
+        });
+
+        // Beginner mode greys out non-beginner equipment and muscle groups
+        document.getElementById('beginnerMode').addEventListener('change', function() {
+          const beginnerEquip = ${JSON.stringify(BEGINNER_EQUIPMENT)};
+          const beginnerMuscles = ${JSON.stringify(BEGINNER_MUSCLES)};
+          const isBeginner = this.checked;
+
+          document.querySelectorAll('.beginner-equip').forEach(label => {
+            const eq = label.getAttribute('data-equip');
+            if (isBeginner && !beginnerEquip.includes(eq)) {
+              label.classList.add('disabled-option');
+              label.querySelector('input').checked = false;
+              label.querySelector('input').disabled = true;
+            } else {
+              label.classList.remove('disabled-option');
+              label.querySelector('input').disabled = false;
+            }
+          });
+          document.querySelectorAll('.beginner-muscle').forEach(label => {
+            const mg = label.getAttribute('data-muscle');
+            if (isBeginner && !beginnerMuscles.includes(mg)) {
+              label.classList.add('disabled-option');
+              label.querySelector('input').checked = false;
+              label.querySelector('input').disabled = true;
+            } else {
+              label.classList.remove('disabled-option');
+              label.querySelector('input').disabled = false;
+            }
+          });
         });
       </script>
     </body>
