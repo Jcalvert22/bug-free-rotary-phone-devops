@@ -61,6 +61,17 @@ app.get('/', (req, res) => {
           margin: 0;
           padding: 0;
         }
+        .header {
+          width: 100%;
+          background: #232526;
+          color: #4f8cff;
+          font-size: 1.5em;
+          font-weight: 700;
+          padding: 18px 0;
+          text-align: center;
+          letter-spacing: 2px;
+          box-shadow: 0 2px 8px #0004;
+        }
         .container {
           max-width: 420px;
           margin: 40px auto;
@@ -126,6 +137,7 @@ app.get('/', (req, res) => {
       </style>
     </head>
     <body>
+      <div class="header">GymTravel</div>
       <div class="container">
         <h1>Starter Gym Planner</h1>
         <form method="POST" action="/plan">
@@ -162,7 +174,6 @@ app.get('/', (req, res) => {
         document.querySelector('input[type="range"]').addEventListener('input', function() {
           document.getElementById('percentVal').innerText = this.value;
         });
-        // Disable/enable max inputs if "no max" is checked
         document.getElementById('noMax').addEventListener('change', function() {
           const disabled = this.checked;
           document.querySelectorAll('#maxInputs input').forEach(inp => {
