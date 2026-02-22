@@ -38,7 +38,13 @@ const MUSCLE_GROUPS = [
 ];
 
 function renderTemplate(file, replacements) {
-  let html = fs.readFileSync(file, 'utf8');
+  let html;
+  try {
+    html = fs.readFileSync(file, 'utf8');
+  } catch (err) {
+    console.error('Template file not found:', file);
+    throw err;
+  }
   for (const key in replacements) {
     html = html.replace(`<!-- ${key} -->`, replacements[key]);
   }
@@ -109,6 +115,11 @@ app.post('/plan', (req, res) => {
     }
   );
   res.send(html);
+});
+
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+  res.status(500).send('<h1>Internal Server Error</h1><pre>' + err.stack + '</pre>');
 });
 
 app.listen(3000, () => {
