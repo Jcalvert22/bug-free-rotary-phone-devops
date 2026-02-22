@@ -496,13 +496,95 @@ app.post('/plan', (req, res) => {
       </style>
     </head>
     <body>
-      <div class="header">GymTravel</div>
+      <div class="header">AllAroundAthlete</div>
       <div class="container">
-        <h1>Your Custom Gym Plan</h1>
-        <p>Based on your equipment, muscle group(s), and goal (${mode === 'bulking' ? 'Bulking' : 'Dieting'}):</p>
-        ${planTable}
-        <a href="/" class="button">Back</a>
+        <h1>Starter Gym Planner</h1>
+        <form method="POST" action="/plan">
+          <div style="margin-bottom:12px;">
+            <label class="option"><input type="checkbox" id="beginnerMode" name="beginner_mode"> Beginner Mode (recommended for new lifters)</label>
+          </div>
+          <p style="margin-bottom:8px;">Equipment:</p>
+          ${equipmentOptions}
+          <hr>
+          <p style="margin-bottom:8px;">Muscle Groups:</p>
+          ${muscleOptions}
+          <hr>
+          <div style="margin-bottom:12px;">
+            <label class="option"><input type="radio" name="mode" value="dieting" checked> Dieting (High reps, low weight)</label>
+            <label class="option"><input type="radio" name="mode" value="bulking"> Bulking (Low reps, high weight)</label>
+          </div>
+          <hr>
+          <div style="margin-bottom:12px;">
+            <label class="option"><input type="checkbox" id="noMax" name="no_max"> I don't know my max weights</label>
+            <div id="maxInputs">
+              <label class="max-label" id="benchLabel">Bench Press Max (lbs): <input type="number" class="max-input" name="bench_max" min="0" step="1" required></label><br>
+              <label class="max-label" id="squatLabel">Squat Max (lbs): <input type="number" class="max-input" name="squat_max" min="0" step="1" required></label><br>
+              <label class="max-label" id="deadliftLabel">Deadlift Max (lbs): <input type="number" class="max-input" name="deadlift_max" min="0" step="1" required></label>
+            </div>
+          </div>
+          <hr>
+          <div style="margin-bottom:12px;">
+            <label class="max-label" id="percentLabel">Recommended % of Max Weight: 
+              <input type="range" class="max-input" name="percent" min="50" max="90" value="70" oninput="document.getElementById('percentVal').innerText = this.value">
+              <span id="percentVal">70</span>%
+            </label>
+          </div>
+          <div style="margin-bottom:12px;">
+            <label for="workout_time" class="option">How many minutes do you have to workout?
+              <input type="number" id="workout_time" name="workout_time" min="10" max="180" value="60" required style="width:100px; font-size:1.1em; padding:8px 14px;">
+            </label>
+          </div>
+          <button type="submit">Build My Plan</button>
+        </form>
       </div>
+      <script>
+        // Grey out maxes if "I don't know my max weights" is checked
+        document.querySelector('input[type="range"]').addEventListener('input', function() {
+          document.getElementById('percentVal').innerText = this.value;
+        });
+        document.getElementById('noMax').addEventListener('change', function() {
+          const disabled = this.checked;
+          document.querySelectorAll('.max-input').forEach(inp => {
+            inp.disabled = disabled;
+            inp.required = !disabled;
+            inp.classList.toggle('max-disabled', disabled);
+          });
+          document.querySelectorAll('.max-label').forEach(lbl => {
+            lbl.classList.toggle('max-label-disabled', disabled);
+          });
+          document.getElementById('percentLabel').classList.toggle('max-label-disabled', disabled);
+        });
+
+        // Beginner mode greys out non-beginner equipment and muscle groups
+        document.getElementById('beginnerMode').addEventListener('change', function() {
+          const beginnerEquip = ${JSON.stringify(BEGINNER_EQUIPMENT)};
+          const beginnerMuscles = ${JSON.stringify(BEGINNER_MUSCLES)};
+          const isBeginner = this.checked;
+
+          document.querySelectorAll('.beginner-equip').forEach(label => {
+            const eq = label.getAttribute('data-equip');
+            if (isBeginner && !beginnerEquip.includes(eq)) {
+              label.classList.add('disabled-option');
+              label.querySelector('input').checked = false;
+              label.querySelector('input').disabled = true;
+            } else {
+              label.classList.remove('disabled-option');
+              label.querySelector('input').disabled = false;
+            }
+          });
+          document.querySelectorAll('.beginner-muscle').forEach(label => {
+            const mg = label.getAttribute('data-muscle');
+            if (isBeginner && !beginnerMuscles.includes(mg)) {
+              label.classList.add('disabled-option');
+              label.querySelector('input').checked = false;
+              label.querySelector('input').disabled = true;
+            } else {
+              label.classList.remove('disabled-option');
+              label.querySelector('input').disabled = false;
+            }
+          });
+        });
+      </script>
     </body>
     </html>
   `);
