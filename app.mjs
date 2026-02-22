@@ -162,12 +162,34 @@ app.post('/plan', (req, res) => {
     ex.equipment.some(eq => selected.includes(eq) || (eq === "Bodyweight" && selected.includes("Bodyweight Only"))) &&
     selectedMuscles.includes(ex.muscle_group)
   );
-  const planHtml = plan.length
-    ? `<ul>${plan.map(ex => `<li>${ex.name} (${ex.equipment.join(', ')}) - ${ex.muscle_group} <br>
-      <strong>Recommended: ${repRange}</strong><br>
-      <strong>Recommended Weight: ${getRecommendedWeight(ex)}</strong>
-      </li>`).join('')}</ul>`
+
+  const planTable = plan.length
+    ? `
+      <table class="plan-table">
+        <thead>
+          <tr>
+            <th>Exercise</th>
+            <th>Equipment</th>
+            <th>Muscle Group</th>
+            <th>Rep Range</th>
+            <th>Recommended Weight</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${plan.map(ex => `
+            <tr>
+              <td>${ex.name}</td>
+              <td>${ex.equipment.join(', ')}</td>
+              <td>${ex.muscle_group}</td>
+              <td>${repRange}</td>
+              <td>${getRecommendedWeight(ex)}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `
     : '<p>No workouts available for selected equipment and muscle group.</p>';
+
   res.send(`
     <html>
     <head>
@@ -176,14 +198,22 @@ app.post('/plan', (req, res) => {
       <style>
         body { background: #181a1b; color: #f3f3f3; font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; }
         .header { width: 100%; background: #232526; color: #4f8cff; font-size: 1.5em; font-weight: 700; padding: 18px 0; text-align: center; letter-spacing: 2px; box-shadow: 0 2px 8px #0004; }
-        .container { max-width: 420px; margin: 40px auto; background: #232526; border-radius: 12px; box-shadow: 0 4px 24px #000a; padding: 32px 28px 24px 28px; }
+        .container { max-width: 600px; margin: 40px auto; background: #232526; border-radius: 12px; box-shadow: 0 4px 24px #000a; padding: 32px 28px 24px 28px; }
         h1 { font-size: 1.7em; font-weight: 600; margin-bottom: 18px; letter-spacing: 1px; }
-        button { background: #4f8cff; color: #fff; border: none; border-radius: 6px; padding: 10px 22px; font-size: 1em; font-weight: 500; cursor: pointer; margin-top: 18px; transition: background 0.2s; }
-        button:hover { background: #2563eb; }
+        button, a.button { background: #4f8cff; color: #fff; border: none; border-radius: 6px; padding: 10px 22px; font-size: 1em; font-weight: 500; cursor: pointer; margin-top: 18px; transition: background 0.2s; text-decoration: none; display: inline-block; }
+        button:hover, a.button:hover { background: #2563eb; }
         a { color: #4f8cff; text-decoration: none; font-weight: 500; }
         a:hover { text-decoration: underline; }
-        ul { padding-left: 18px; }
-        li { margin-bottom: 16px; }
+        .plan-table { width: 100%; border-collapse: collapse; margin-top: 18px; background: #232526; border-radius: 8px; overflow: hidden; }
+        .plan-table th, .plan-table td { padding: 12px 8px; text-align: left; }
+        .plan-table th { background: #181a1b; color: #4f8cff; border-bottom: 2px solid #333; }
+        .plan-table tr { border-bottom: 1px solid #333; }
+        .plan-table tr:last-child { border-bottom: none; }
+        .plan-table td { color: #f3f3f3; }
+        @media (max-width: 700px) {
+          .container { padding: 18px 6vw; }
+          .plan-table th, .plan-table td { padding: 8px 4px; font-size: 0.95em; }
+        }
       </style>
     </head>
     <body>
@@ -191,8 +221,8 @@ app.post('/plan', (req, res) => {
       <div class="container">
         <h1>Your Custom Gym Plan</h1>
         <p>Based on your equipment, muscle group(s), and goal (${mode === 'bulking' ? 'Bulking' : 'Dieting'}):</p>
-        ${planHtml}
-        <a href="/">Back</a>
+        ${planTable}
+        <a href="/" class="button">Back</a>
       </div>
     </body>
     </html>
