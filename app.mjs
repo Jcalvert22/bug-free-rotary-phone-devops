@@ -35,84 +35,84 @@ const EXERCISES = [
     equipment: ["Bodyweight"], 
     muscle_group: "Chest",
     howto: "Start in a plank position with hands under shoulders. Lower your body until your chest nearly touches the floor, then push back up.",
-    video: "https://www.youtube.com/embed/_l3ySVKYVJ8"
+    video: ""
   },
   { 
     name: "Incline Push-up", 
     equipment: ["Bodyweight", "Bench"], 
     muscle_group: "Upper Chest",
     howto: "Place your hands on a bench or elevated surface. Keep your body straight, lower your chest to the bench, then push back up.",
-    video: "https://www.youtube.com/embed/cyJ6F6gCk3E"
+    video: ""
   },
   { 
     name: "Triceps Dip", 
     equipment: ["Bodyweight", "Bench"], 
     muscle_group: "Triceps",
     howto: "Sit on a bench, place hands beside hips. Slide off, lower your body by bending elbows, then press back up.",
-    video: "https://www.youtube.com/embed/0326dy_-CzM"
+    video: ""
   },
   { 
     name: "Bicep Curl", 
     equipment: ["Dumbbells", "Barbell", "Resistance Bands"], 
     muscle_group: "Biceps",
     howto: "Hold weights at your sides, palms forward. Curl weights up while keeping elbows close, then lower slowly.",
-    video: "https://www.youtube.com/embed/ykJmrZ5v0Oo"
+    video: ""
   },
   { 
     name: "Wrist Curl", 
     equipment: ["Dumbbells", "Barbell"], 
     muscle_group: "Forearms",
     howto: "Sit and rest forearms on thighs, palms up, holding weights. Curl wrists upward, then lower.",
-    video: "https://www.youtube.com/embed/2A1p5r6b9JU"
+    video: ""
   },
   { 
     name: "Pull-up", 
     equipment: ["Pull-up Bar"], 
     muscle_group: "Back",
     howto: "Hang from a bar with palms away. Pull your chin above the bar, then lower with control.",
-    video: "https://www.youtube.com/embed/eGo4IYlbE5g"
+    video: ""
   },
   { 
     name: "Shrug", 
     equipment: ["Dumbbells", "Barbell"], 
     muscle_group: "Traps",
     howto: "Hold weights at your sides. Shrug shoulders up toward ears, then lower.",
-    video: "https://www.youtube.com/embed/6TSP1TRMUzs"
+    video: ""
   },
   { 
     name: "Squat", 
     equipment: ["Bodyweight", "Barbell", "Dumbbells"], 
     muscle_group: "Quads",
     howto: "Stand with feet shoulder-width apart. Lower hips back and down, then stand back up.",
-    video: "https://www.youtube.com/embed/aclHkVaku9U"
+    video: ""
   },
   { 
     name: "Calf Raise", 
     equipment: ["Bodyweight", "Dumbbells"], 
     muscle_group: "Calves",
     howto: "Stand tall, push through the balls of your feet to raise your body upward, then lower.",
-    video: "https://www.youtube.com/embed/-M4-G8p8fmc"
+    video: ""
   },
   { 
     name: "Hamstring Curl", 
     equipment: ["Resistance Bands"], 
     muscle_group: "Hamstrings",
     howto: "Anchor band, lie face down, hook band to ankles, curl heels toward glutes, then return.",
-    video: "https://www.youtube.com/embed/1Tq3QdYUuHs"
+    video: ""
   },
   { 
     name: "Bench Press", 
     equipment: ["Barbell", "Bench", "Dumbbells"], 
     muscle_group: "Chest",
     howto: "Lie on a bench, grip bar wider than shoulders. Lower bar to chest, then press up.",
-    video: "https://www.youtube.com/embed/gRVjAtPip0Y"
+    video: ""
   },
   { 
     name: "Deadlift", 
     equipment: ["Barbell", "Dumbbells"], 
     muscle_group: "Back",
     howto: "Stand with feet hip-width, grip bar. Hinge at hips, lift bar by straightening hips and knees.",
-    video: "https://www.youtube.com/embed/op9kVnSso6Q"
+    video: ""
   }
 ];
 
@@ -132,8 +132,8 @@ app.get('/', (req, res) => {
         hr { border: none; border-top: 1px solid #333; margin: 18px 0; }
         .option { display: block; margin: 7px 0; font-size: 1em; cursor: pointer; }
         input[type="checkbox"], input[type="radio"] { accent-color: #4f8cff; margin-right: 8px; }
-        input[type="number"], input[type="range"] { background: #232526; color: #f3f3f3; border: 1px solid #333; border-radius: 5px; padding: 5px 8px; margin: 4px 0 10px 0; width: 80px; }
-        input[type="range"] { width: 120px; }
+        input[type="number"] { background: #232526; color: #f3f3f3; border: 1px solid #333; border-radius: 5px; padding: 8px 14px; margin: 4px 0 10px 0; width: 160px; font-size: 1.1em; }
+        input[type="range"] { background: #232526; color: #f3f3f3; border: 1px solid #333; border-radius: 5px; width: 120px; }
         .max-disabled { background: #232526 !important; color: #888 !important; border-color: #444 !important; }
         .max-label-disabled { color: #888 !important; }
         button { background: #4f8cff; color: #fff; border: none; border-radius: 6px; padding: 10px 22px; font-size: 1em; font-weight: 500; cursor: pointer; margin-top: 18px; transition: background 0.2s; }
@@ -168,9 +168,8 @@ app.get('/', (req, res) => {
           </div>
           <hr>
           <div style="margin-bottom:12px;">
-            <label class="max-label" id="percentLabel">Recommended % of Max Weight: 
-              <input type="range" class="max-input" name="percent" min="50" max="90" value="70" oninput="document.getElementById('percentVal').innerText = this.value">
-              <span id="percentVal">70</span>%
+            <label for="workout_time" class="option">How many minutes do you have to workout?
+              <input type="number" id="workout_time" name="workout_time" min="10" max="180" value="60" required style="width:100px; font-size:1.1em; padding:8px 14px;">
             </label>
           </div>
           <button type="submit">Build My Plan</button>
@@ -230,10 +229,23 @@ app.post('/plan', (req, res) => {
     return `${Math.round(max * percent / 100)} lbs (${percent}% of max)`;
   }
 
-  const plan = EXERCISES.filter(ex =>
-    ex.equipment.some(eq => selected.includes(eq) || (eq === "Bodyweight" && selected.includes("Bodyweight Only"))) &&
-    selectedMuscles.includes(ex.muscle_group)
-  );
+  const workoutTime = parseInt(req.body.workout_time) || 60;
+  const exercisesPerGroup = workoutTime <= 45 ? 2 : 3;
+
+  // For each selected muscle group, pick up to N matching exercises
+  let plan = [];
+  selectedMuscles.forEach(muscle => {
+    const matches = EXERCISES.filter(ex =>
+      ex.muscle_group === muscle &&
+      ex.equipment.some(eq => selected.includes(eq) || (eq === "Bodyweight" && selected.includes("Bodyweight Only")))
+    );
+    // Shuffle for variety
+    for (let i = matches.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [matches[i], matches[j]] = [matches[j], matches[i]];
+    }
+    plan = plan.concat(matches.slice(0, exercisesPerGroup));
+  });
 
   const planTable = plan.length
     ? `
@@ -259,7 +271,7 @@ app.post('/plan', (req, res) => {
               <td>${getRecommendedWeight(ex)}</td>
               <td style="max-width:200px">${ex.howto}</td>
               <td>
-                <iframe width="160" height="90" src="${ex.video}" title="${ex.name} demo" frameborder="0" allowfullscreen style="border-radius:6px;"></iframe>
+                ${ex.video ? `<iframe width="160" height="90" src="${ex.video}" title="${ex.name} demo" frameborder="0" allowfullscreen style="border-radius:6px;"></iframe>` : ''}
               </td>
             </tr>
           `).join('')}
