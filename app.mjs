@@ -264,7 +264,7 @@ app.get('/', (req, res) => {
   res.send(`
     <html>
     <head>
-      <title>GymTravel - Starter Gym Planner</title>
+      <title>AllAroundAthlete - Starter Gym Planner</title>
       <meta name="viewport" content="width=device-width, initial-scale=1">
       <style>
         body { background: #181a1b; color: #f3f3f3; font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; }
@@ -287,7 +287,7 @@ app.get('/', (req, res) => {
       </style>
     </head>
     <body>
-      <div class="header">GymTravel</div>
+      <div class="header">AllAroundAthlete</div>
       <div class="container">
         <h1>Starter Gym Planner</h1>
         <form method="POST" action="/plan">
