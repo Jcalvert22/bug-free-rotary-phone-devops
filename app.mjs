@@ -13,107 +13,201 @@ const EQUIPMENT_LIST = [
   'Resistance Bands',
   'Treadmill',
   'Stationary Bike',
-  'Bodyweight Only'
+  'Bodyweight Only',
+  'Smith Machine',
+  'Cable Machine',
+  'Leg Press Machine',
+  'Chest Press Machine',
+  'Lat Pulldown Machine',
+  'Seated Row Machine',
+  'Pec Deck Machine',
+  'Leg Extension Machine',
+  'Leg Curl Machine',
+  'Calf Raise Machine',
+  'Dip Station',
+  'Ab Wheel',
+  'Medicine Ball',
+  'EZ Curl Bar',
+  'Trap Bar',
+  'Power Rack',
+  'Squat Rack',
+  'Preacher Curl Bench',
+  'Incline Bench',
+  'Decline Bench',
+  'Flat Bench',
+  'Roman Chair',
+  'Hyperextension Bench',
+  'Stepper',
+  'Elliptical',
+  'Rowing Machine',
+  'Battle Ropes',
+  'Sled',
+  'Landmine Attachment',
+  'Pulling Sled',
+  'Plyo Box',
+  'Jump Rope',
+  'Weighted Vest',
+  'Ankle Weights',
+  'Foam Roller',
+  'Stability Ball',
+  'Bosu Ball',
+  'Mini Bands',
+  'Suspension Trainer',
+  'Parallettes',
+  'Push-up Handles',
+  'Grip Trainer',
+  'Farmer’s Walk Handles',
+  'Sissy Squat Machine',
+  'Glute Ham Developer',
+  'Reverse Hyper Machine',
+  'Hack Squat Machine',
+  'Thigh Abductor Machine',
+  'Thigh Adductor Machine',
+  'Hip Thrust Machine',
+  'Chest Fly Machine',
+  'Shoulder Press Machine',
+  'Seated Calf Machine',
+  'Standing Calf Machine',
+  'Wrist Roller',
+  'Weighted Sled',
+  'T-Bar Row Machine',
+  'Multi-Station Gym',
+  'Stepper Machine',
+  'Air Bike',
+  'SkiErg',
+  'Ab Crunch Machine'
 ];
 
 const MUSCLE_GROUPS = [
   'Chest',
   'Upper Chest',
+  'Lower Chest',
   'Triceps',
   'Biceps',
   'Forearms',
   'Back',
+  'Upper Back',
+  'Lower Back',
+  'Lats',
   'Traps',
   'Quads',
+  'Hamstrings',
   'Calves',
-  'Hamstrings'
+  'Glutes',
+  'Hip Flexors',
+  'Adductors',
+  'Abductors',
+  'Abs',
+  'Obliques',
+  'Serratus Anterior',
+  'Front Delt',
+  'Side Delt',
+  'Rear Delt',
+  'Shoulders',
+  'Neck'
 ];
 
 const EXERCISES = [
-  { 
-    name: "Push-up", 
-    equipment: ["Bodyweight"], 
-    muscle_group: "Chest",
-    howto: "Start in a plank position with hands under shoulders. Lower your body until your chest nearly touches the floor, then push back up.",
-    video: ""
-  },
-  { 
-    name: "Incline Push-up", 
-    equipment: ["Bodyweight", "Bench"], 
-    muscle_group: "Upper Chest",
-    howto: "Place your hands on a bench or elevated surface. Keep your body straight, lower your chest to the bench, then push back up.",
-    video: ""
-  },
-  { 
-    name: "Triceps Dip", 
-    equipment: ["Bodyweight", "Bench"], 
-    muscle_group: "Triceps",
-    howto: "Sit on a bench, place hands beside hips. Slide off, lower your body by bending elbows, then press back up.",
-    video: ""
-  },
-  { 
-    name: "Bicep Curl", 
-    equipment: ["Dumbbells", "Barbell", "Resistance Bands"], 
-    muscle_group: "Biceps",
-    howto: "Hold weights at your sides, palms forward. Curl weights up while keeping elbows close, then lower slowly.",
-    video: ""
-  },
-  { 
-    name: "Wrist Curl", 
-    equipment: ["Dumbbells", "Barbell"], 
-    muscle_group: "Forearms",
-    howto: "Sit and rest forearms on thighs, palms up, holding weights. Curl wrists upward, then lower.",
-    video: ""
-  },
-  { 
-    name: "Pull-up", 
-    equipment: ["Pull-up Bar"], 
-    muscle_group: "Back",
-    howto: "Hang from a bar with palms away. Pull your chin above the bar, then lower with control.",
-    video: ""
-  },
-  { 
-    name: "Shrug", 
-    equipment: ["Dumbbells", "Barbell"], 
-    muscle_group: "Traps",
-    howto: "Hold weights at your sides. Shrug shoulders up toward ears, then lower.",
-    video: ""
-  },
-  { 
-    name: "Squat", 
-    equipment: ["Bodyweight", "Barbell", "Dumbbells"], 
-    muscle_group: "Quads",
-    howto: "Stand with feet shoulder-width apart. Lower hips back and down, then stand back up.",
-    video: ""
-  },
-  { 
-    name: "Calf Raise", 
-    equipment: ["Bodyweight", "Dumbbells"], 
-    muscle_group: "Calves",
-    howto: "Stand tall, push through the balls of your feet to raise your body upward, then lower.",
-    video: ""
-  },
-  { 
-    name: "Hamstring Curl", 
-    equipment: ["Resistance Bands"], 
-    muscle_group: "Hamstrings",
-    howto: "Anchor band, lie face down, hook band to ankles, curl heels toward glutes, then return.",
-    video: ""
-  },
-  { 
-    name: "Bench Press", 
-    equipment: ["Barbell", "Bench", "Dumbbells"], 
-    muscle_group: "Chest",
-    howto: "Lie on a bench, grip bar wider than shoulders. Lower bar to chest, then press up.",
-    video: ""
-  },
-  { 
-    name: "Deadlift", 
-    equipment: ["Barbell", "Dumbbells"], 
-    muscle_group: "Back",
-    howto: "Stand with feet hip-width, grip bar. Hinge at hips, lift bar by straightening hips and knees.",
-    video: ""
-  }
+  // Chest
+  { name: "Push-up", equipment: ["Bodyweight"], muscle_group: "Chest", howto: "Start in a plank position with hands under shoulders. Lower your body until your chest nearly touches the floor, then push back up.", video: "" },
+  { name: "Incline Push-up", equipment: ["Bodyweight", "Incline Bench"], muscle_group: "Upper Chest", howto: "Place your hands on an elevated surface. Lower your chest to the bench, then push back up.", video: "" },
+  { name: "Decline Push-up", equipment: ["Bodyweight", "Decline Bench"], muscle_group: "Lower Chest", howto: "Place your feet on an elevated surface. Lower your chest to the floor, then push back up.", video: "" },
+  { name: "Bench Press", equipment: ["Barbell", "Bench", "Dumbbells", "Smith Machine", "Chest Press Machine"], muscle_group: "Chest", howto: "Lie on a bench, grip bar wider than shoulders. Lower bar to chest, then press up.", video: "" },
+  { name: "Incline Bench Press", equipment: ["Barbell", "Incline Bench", "Dumbbells", "Smith Machine", "Chest Press Machine"], muscle_group: "Upper Chest", howto: "Lie on an incline bench, grip bar wider than shoulders. Lower bar to upper chest, then press up.", video: "" },
+  { name: "Decline Bench Press", equipment: ["Barbell", "Decline Bench", "Dumbbells", "Smith Machine"], muscle_group: "Lower Chest", howto: "Lie on a decline bench, grip bar wider than shoulders. Lower bar to lower chest, then press up.", video: "" },
+  { name: "Chest Fly", equipment: ["Dumbbells", "Bench", "Cable Machine", "Pec Deck Machine", "Chest Fly Machine"], muscle_group: "Chest", howto: "With arms slightly bent, bring weights or handles together in a wide arc, then return.", video: "" },
+  { name: "Pec Deck Fly", equipment: ["Pec Deck Machine"], muscle_group: "Chest", howto: "Sit at the machine, bring arms together in front of chest, then return.", video: "" },
+  { name: "Push-up Handles Push-up", equipment: ["Push-up Handles", "Bodyweight"], muscle_group: "Chest", howto: "Use handles for deeper range of motion in a standard push-up.", video: "" },
+
+  // Triceps
+  { name: "Triceps Dip", equipment: ["Bodyweight", "Dip Station", "Bench"], muscle_group: "Triceps", howto: "Lower your body by bending elbows, then press back up.", video: "" },
+  { name: "Triceps Pushdown", equipment: ["Cable Machine"], muscle_group: "Triceps", howto: "Push bar or rope down, keeping elbows at sides.", video: "" },
+  { name: "Overhead Triceps Extension", equipment: ["Dumbbells", "Cable Machine", "EZ Curl Bar"], muscle_group: "Triceps", howto: "Extend weight overhead, then lower behind head and press up.", video: "" },
+  { name: "Skullcrusher", equipment: ["EZ Curl Bar", "Barbell", "Dumbbells", "Bench"], muscle_group: "Triceps", howto: "Lower bar to forehead, then extend arms.", video: "" },
+
+  // Biceps
+  { name: "Bicep Curl", equipment: ["Dumbbells", "Barbell", "EZ Curl Bar", "Cable Machine", "Resistance Bands"], muscle_group: "Biceps", howto: "Curl weights up while keeping elbows close, then lower slowly.", video: "" },
+  { name: "Hammer Curl", equipment: ["Dumbbells"], muscle_group: "Biceps", howto: "Curl with palms facing each other.", video: "" },
+  { name: "Preacher Curl", equipment: ["EZ Curl Bar", "Preacher Curl Bench", "Dumbbells"], muscle_group: "Biceps", howto: "Curl weight on preacher bench, then lower.", video: "" },
+  { name: "Concentration Curl", equipment: ["Dumbbells"], muscle_group: "Biceps", howto: "Curl dumbbell while seated, elbow on thigh.", video: "" },
+  { name: "Cable Curl", equipment: ["Cable Machine"], muscle_group: "Biceps", howto: "Curl cable attachment toward shoulders.", video: "" },
+
+  // Forearms
+  { name: "Wrist Curl", equipment: ["Dumbbells", "Barbell", "EZ Curl Bar"], muscle_group: "Forearms", howto: "Curl wrists upward, then lower.", video: "" },
+  { name: "Reverse Wrist Curl", equipment: ["Dumbbells", "Barbell", "EZ Curl Bar"], muscle_group: "Forearms", howto: "Curl wrists upward with palms down.", video: "" },
+  { name: "Farmer’s Walk", equipment: ["Dumbbells", "Farmer’s Walk Handles", "Kettlebell"], muscle_group: "Forearms", howto: "Walk while holding heavy weights at sides.", video: "" },
+  { name: "Wrist Roller", equipment: ["Wrist Roller"], muscle_group: "Forearms", howto: "Roll weight up and down using wrists.", video: "" },
+  { name: "Grip Trainer Squeeze", equipment: ["Grip Trainer"], muscle_group: "Forearms", howto: "Squeeze grip trainer for repetitions.", video: "" },
+
+  // Shoulders
+  { name: "Overhead Press", equipment: ["Barbell", "Dumbbells", "Smith Machine", "Shoulder Press Machine"], muscle_group: "Shoulders", howto: "Press weight overhead, then lower.", video: "" },
+  { name: "Front Raise", equipment: ["Dumbbells", "Cable Machine", "Resistance Bands"], muscle_group: "Front Delt", howto: "Raise weights in front to shoulder height.", video: "" },
+  { name: "Lateral Raise", equipment: ["Dumbbells", "Cable Machine", "Resistance Bands"], muscle_group: "Side Delt", howto: "Raise weights to sides to shoulder height.", video: "" },
+  { name: "Rear Delt Fly", equipment: ["Dumbbells", "Cable Machine", "Pec Deck Machine"], muscle_group: "Rear Delt", howto: "Bend forward, raise arms out to sides.", video: "" },
+  { name: "Arnold Press", equipment: ["Dumbbells"], muscle_group: "Shoulders", howto: "Rotate palms during overhead press.", video: "" },
+  { name: "Upright Row", equipment: ["Barbell", "Dumbbells", "EZ Curl Bar", "Cable Machine"], muscle_group: "Traps", howto: "Pull weight up to chest, elbows high.", video: "" },
+  { name: "Shrug", equipment: ["Dumbbells", "Barbell", "Smith Machine"], muscle_group: "Traps", howto: "Shrug shoulders up toward ears, then lower.", video: "" },
+  { name: "Face Pull", equipment: ["Cable Machine", "Resistance Bands"], muscle_group: "Rear Delt", howto: "Pull rope toward face, elbows high.", video: "" },
+
+  // Back
+  { name: "Pull-up", equipment: ["Pull-up Bar", "Assisted Pull-up Machine"], muscle_group: "Back", howto: "Pull chin above bar, then lower.", video: "" },
+  { name: "Chin-up", equipment: ["Pull-up Bar"], muscle_group: "Back", howto: "Pull chin above bar with underhand grip.", video: "" },
+  { name: "Lat Pulldown", equipment: ["Lat Pulldown Machine", "Cable Machine"], muscle_group: "Lats", howto: "Pull bar to chest, then release.", video: "" },
+  { name: "Seated Row", equipment: ["Seated Row Machine", "Cable Machine"], muscle_group: "Back", howto: "Pull handles to torso, then release.", video: "" },
+  { name: "Bent Over Row", equipment: ["Barbell", "Dumbbells", "Smith Machine", "T-Bar Row Machine"], muscle_group: "Back", howto: "Row weight to waist, then lower.", video: "" },
+  { name: "T-Bar Row", equipment: ["T-Bar Row Machine", "Barbell"], muscle_group: "Back", howto: "Row bar to chest, then lower.", video: "" },
+  { name: "Single Arm Row", equipment: ["Dumbbells", "Cable Machine"], muscle_group: "Back", howto: "Row dumbbell to hip, then lower.", video: "" },
+  { name: "Deadlift", equipment: ["Barbell", "Dumbbells", "Trap Bar", "Smith Machine"], muscle_group: "Lower Back", howto: "Lift bar from floor by straightening hips and knees.", video: "" },
+  { name: "Good Morning", equipment: ["Barbell", "Smith Machine"], muscle_group: "Lower Back", howto: "Hinge at hips with bar on back, then return.", video: "" },
+  { name: "Hyperextension", equipment: ["Hyperextension Bench", "Roman Chair"], muscle_group: "Lower Back", howto: "Extend torso upward, then lower.", video: "" },
+  { name: "Reverse Hyper", equipment: ["Reverse Hyper Machine"], muscle_group: "Lower Back", howto: "Lift legs behind you while lying face down.", video: "" },
+
+  // Abs & Core
+  { name: "Crunch", equipment: ["Bodyweight", "Ab Crunch Machine"], muscle_group: "Abs", howto: "Curl shoulders toward hips, then lower.", video: "" },
+  { name: "Sit-up", equipment: ["Bodyweight"], muscle_group: "Abs", howto: "Sit up from lying position, then lower.", video: "" },
+  { name: "Hanging Leg Raise", equipment: ["Pull-up Bar"], muscle_group: "Abs", howto: "Raise legs while hanging, then lower.", video: "" },
+  { name: "Plank", equipment: ["Bodyweight"], muscle_group: "Abs", howto: "Hold body straight on elbows and toes.", video: "" },
+  { name: "Russian Twist", equipment: ["Medicine Ball", "Bodyweight"], muscle_group: "Obliques", howto: "Twist torso side to side while seated.", video: "" },
+  { name: "Cable Woodchopper", equipment: ["Cable Machine"], muscle_group: "Obliques", howto: "Pull cable diagonally across body.", video: "" },
+  { name: "Ab Wheel Rollout", equipment: ["Ab Wheel"], muscle_group: "Abs", howto: "Roll wheel forward and back from knees or toes.", video: "" },
+  { name: "Decline Sit-up", equipment: ["Decline Bench"], muscle_group: "Abs", howto: "Sit up from decline position, then lower.", video: "" },
+  { name: "Side Plank", equipment: ["Bodyweight"], muscle_group: "Obliques", howto: "Hold body straight on one elbow and side of foot.", video: "" },
+
+  // Glutes & Hips
+  { name: "Hip Thrust", equipment: ["Barbell", "Bench", "Hip Thrust Machine"], muscle_group: "Glutes", howto: "Thrust hips upward with weight on hips.", video: "" },
+  { name: "Glute Bridge", equipment: ["Bodyweight", "Barbell"], muscle_group: "Glutes", howto: "Bridge hips upward from floor.", video: "" },
+  { name: "Cable Kickback", equipment: ["Cable Machine"], muscle_group: "Glutes", howto: "Kick leg back with cable attached to ankle.", video: "" },
+  { name: "Abductor Machine", equipment: ["Abductors", "Thigh Abductor Machine"], muscle_group: "Abductors", howto: "Push legs outward against pads.", video: "" },
+  { name: "Adductor Machine", equipment: ["Adductors", "Thigh Adductor Machine"], muscle_group: "Adductors", howto: "Squeeze legs inward against pads.", video: "" },
+  { name: "Step-up", equipment: ["Bench", "Plyo Box"], muscle_group: "Glutes", howto: "Step onto box, drive through heel.", video: "" },
+  { name: "Bulgarian Split Squat", equipment: ["Dumbbells", "Bench"], muscle_group: "Glutes", howto: "Rear foot on bench, squat with front leg.", video: "" },
+
+  // Quads
+  { name: "Squat", equipment: ["Barbell", "Dumbbells", "Smith Machine", "Bodyweight", "Squat Rack", "Power Rack"], muscle_group: "Quads", howto: "Lower hips back and down, then stand up.", video: "" },
+  { name: "Front Squat", equipment: ["Barbell", "Smith Machine"], muscle_group: "Quads", howto: "Barbell rests on front shoulders, squat down and up.", video: "" },
+  { name: "Leg Press", equipment: ["Leg Press Machine"], muscle_group: "Quads", howto: "Press platform away with feet.", video: "" },
+  { name: "Leg Extension", equipment: ["Leg Extension Machine"], muscle_group: "Quads", howto: "Extend knees to lift pad.", video: "" },
+  { name: "Sissy Squat", equipment: ["Sissy Squat Machine"], muscle_group: "Quads", howto: "Lean back and squat, keeping hips forward.", video: "" },
+
+  // Hamstrings
+  { name: "Leg Curl", equipment: ["Leg Curl Machine", "Resistance Bands"], muscle_group: "Hamstrings", howto: "Curl heels toward glutes.", video: "" },
+  { name: "Romanian Deadlift", equipment: ["Barbell", "Dumbbells", "Smith Machine"], muscle_group: "Hamstrings", howto: "Hinge at hips, lower weight, then return.", video: "" },
+  { name: "Glute Ham Raise", equipment: ["Glute Ham Developer"], muscle_group: "Hamstrings", howto: "Lower torso, then curl up using hamstrings.", video: "" },
+
+  // Calves
+  { name: "Standing Calf Raise", equipment: ["Bodyweight", "Dumbbells", "Barbell", "Standing Calf Machine"], muscle_group: "Calves", howto: "Raise heels off ground, then lower.", video: "" },
+  { name: "Seated Calf Raise", equipment: ["Seated Calf Machine"], muscle_group: "Calves", howto: "Raise heels while seated, then lower.", video: "" },
+  { name: "Donkey Calf Raise", equipment: ["Bodyweight", "Donkey Calf Machine"], muscle_group: "Calves", howto: "Bend at waist, raise heels, then lower.", video: "" },
+
+  // Cardio/Full Body/Other
+  { name: "Jump Rope", equipment: ["Jump Rope"], muscle_group: "Calves", howto: "Jump over rope repeatedly.", video: "" },
+  { name: "Rowing", equipment: ["Rowing Machine"], muscle_group: "Back", howto: "Row handle toward chest, then extend.", video: "" },
+  { name: "Battle Ropes", equipment: ["Battle Ropes"], muscle_group: "Shoulders", howto: "Wave ropes up and down.", video: "" },
+  { name: "Sled Push", equipment: ["Sled", "Weighted Sled"], muscle_group: "Quads", howto: "Push sled forward using legs.", video: "" },
+  { name: "Farmer’s Walk", equipment: ["Dumbbells", "Farmer’s Walk Handles", "Kettlebell"], muscle_group: "Forearms", howto: "Walk while holding heavy weights at sides.", video: "" },
+  { name: "StepMill", equipment: ["Stepper", "Stepper Machine"], muscle_group: "Glutes", howto: "Climb rotating stairs.", video: "" },
+  { name: "Air Bike Sprint", equipment: ["Air Bike"], muscle_group: "Full Body", howto: "Pedal and push/pull handles as fast as possible.", video: "" },
+  { name: "SkiErg Pull", equipment: ["SkiErg"], muscle_group: "Back", howto: "Pull handles down in a skiing motion.", video: "" }
 ];
 
 app.get('/', (req, res) => {
