@@ -1,110 +1,17 @@
 import express from 'express';
+import { getRecommendedWeight } from './functions/helpers.js';
 
 const app = express();
 
 app.use(express.urlencoded({ extended: true }));
+app.use('/styles', express.static('styles'));
 
 const EQUIPMENT_LIST = [
-  'Dumbbells',
-  'Barbell',
-  'Bench',
-  'Pull-up Bar',
-  'Kettlebell',
-  'Resistance Bands',
-  'Treadmill',
-  'Stationary Bike',
-  'Bodyweight Only',
-  'Smith Machine',
-  'Cable Machine',
-  'Leg Press Machine',
-  'Chest Press Machine',
-  'Lat Pulldown Machine',
-  'Seated Row Machine',
-  'Pec Deck Machine',
-  'Leg Extension Machine',
-  'Leg Curl Machine',
-  'Calf Raise Machine',
-  'Dip Station',
-  'Ab Wheel',
-  'Medicine Ball',
-  'EZ Curl Bar',
-  'Trap Bar',
-  'Power Rack',
-  'Squat Rack',
-  'Preacher Curl Bench',
-  'Incline Bench',
-  'Decline Bench',
-  'Flat Bench',
-  'Roman Chair',
-  'Hyperextension Bench',
-  'Stepper',
-  'Elliptical',
-  'Rowing Machine',
-  'Battle Ropes',
-  'Sled',
-  'Landmine Attachment',
-  'Pulling Sled',
-  'Plyo Box',
-  'Jump Rope',
-  'Weighted Vest',
-  'Ankle Weights',
-  'Foam Roller',
-  'Stability Ball',
-  'Bosu Ball',
-  'Mini Bands',
-  'Suspension Trainer',
-  'Parallettes',
-  'Push-up Handles',
-  'Grip Trainer',
-  'Farmer’s Walk Handles',
-  'Sissy Squat Machine',
-  'Glute Ham Developer',
-  'Reverse Hyper Machine',
-  'Hack Squat Machine',
-  'Thigh Abductor Machine',
-  'Thigh Adductor Machine',
-  'Hip Thrust Machine',
-  'Chest Fly Machine',
-  'Shoulder Press Machine',
-  'Seated Calf Machine',
-  'Standing Calf Machine',
-  'Wrist Roller',
-  'Weighted Sled',
-  'T-Bar Row Machine',
-  'Multi-Station Gym',
-  'Stepper Machine',
-  'Air Bike',
-  'SkiErg',
-  'Ab Crunch Machine'
+  'Dumbbells', 'Barbell', 'Bench', 'Pull-up Bar', 'Kettlebell', 'Resistance Bands', 'Treadmill', 'Stationary Bike', 'Bodyweight Only', 'Smith Machine', 'Cable Machine', 'Leg Press Machine', 'Chest Press Machine', 'Lat Pulldown Machine', 'Seated Row Machine', 'Pec Deck Machine', 'Leg Extension Machine', 'Leg Curl Machine', 'Calf Raise Machine', 'Dip Station', 'Ab Wheel', 'Medicine Ball', 'EZ Curl Bar', 'Trap Bar', 'Power Rack', 'Squat Rack', 'Preacher Curl Bench', 'Incline Bench', 'Decline Bench', 'Flat Bench', 'Roman Chair', 'Hyperextension Bench', 'Stepper', 'Elliptical', 'Rowing Machine', 'Battle Ropes', 'Sled', 'Landmine Attachment', 'Pulling Sled', 'Plyo Box', 'Jump Rope', 'Weighted Vest', 'Ankle Weights', 'Foam Roller', 'Stability Ball', 'Bosu Ball', 'Mini Bands', 'Suspension Trainer', 'Parallettes', 'Push-up Handles', 'Grip Trainer', 'Farmer’s Walk Handles', 'Sissy Squat Machine', 'Glute Ham Developer', 'Reverse Hyper Machine', 'Hack Squat Machine', 'Thigh Abductor Machine', 'Thigh Adductor Machine', 'Hip Thrust Machine', 'Chest Fly Machine', 'Shoulder Press Machine', 'Seated Calf Machine', 'Standing Calf Machine', 'Wrist Roller', 'Weighted Sled', 'T-Bar Row Machine', 'Multi-Station Gym', 'Stepper Machine', 'Air Bike', 'SkiErg', 'Ab Crunch Machine'
 ];
 
 const MUSCLE_GROUPS = [
-  'Chest',
-  'Upper Chest',
-  'Lower Chest',
-  'Triceps',
-  'Biceps',
-  'Forearms',
-  'Back',
-  'Upper Back',
-  'Lower Back',
-  'Lats',
-  'Traps',
-  'Quads',
-  'Hamstrings',
-  'Calves',
-  'Glutes',
-  'Hip Flexors',
-  'Adductors',
-  'Abductors',
-  'Abs',
-  'Obliques',
-  'Serratus Anterior',
-  'Front Delt',
-  'Side Delt',
-  'Rear Delt',
-  'Shoulders',
-  'Neck'
+  'Chest', 'Upper Chest', 'Lower Chest', 'Triceps', 'Biceps', 'Forearms', 'Back', 'Upper Back', 'Lower Back', 'Lats', 'Traps', 'Quads', 'Hamstrings', 'Calves', 'Glutes', 'Hip Flexors', 'Adductors', 'Abductors', 'Abs', 'Obliques', 'Serratus Anterior', 'Front Delt', 'Side Delt', 'Rear Delt', 'Shoulders', 'Neck'
 ];
 
 const EXERCISES = [
@@ -210,48 +117,12 @@ const EXERCISES = [
   { name: "SkiErg Pull", equipment: ["SkiErg"], muscle_group: "Back", howto: "Pull handles down in a skiing motion.", video: "" }
 ];
 
-// Add these lists for beginner-friendly equipment and muscle groups
 const BEGINNER_EQUIPMENT = [
-  'Dumbbells',
-  'Bench',
-  'Resistance Bands',
-  'Bodyweight Only',
-  'Stationary Bike',
-  'Treadmill',
-  'Kettlebell',
-  'Pull-up Bar',
-  'Medicine Ball',
-  'Step-up Box',
-  'Incline Bench',
-  'Flat Bench',
-  'Jump Rope',
-  'Seated Row Machine',
-  'Lat Pulldown Machine',
-  'Leg Press Machine',
-  'Leg Extension Machine',
-  'Leg Curl Machine',
-  'Chest Press Machine',
-  'Shoulder Press Machine',
-  'Pec Deck Machine',
-  'Ab Crunch Machine',
-  'Stepper',
-  'Elliptical',
-  'Rowing Machine'
+  'Dumbbells', 'Bench', 'Resistance Bands', 'Bodyweight Only', 'Stationary Bike', 'Treadmill', 'Kettlebell', 'Pull-up Bar', 'Medicine Ball', 'Step-up Box', 'Incline Bench', 'Flat Bench', 'Jump Rope', 'Seated Row Machine', 'Lat Pulldown Machine', 'Leg Press Machine', 'Leg Extension Machine', 'Leg Curl Machine', 'Chest Press Machine', 'Shoulder Press Machine', 'Pec Deck Machine', 'Ab Crunch Machine', 'Stepper', 'Elliptical', 'Rowing Machine'
 ];
 
 const BEGINNER_MUSCLES = [
-  'Chest',
-  'Upper Chest',
-  'Triceps',
-  'Biceps',
-  'Forearms',
-  'Back',
-  'Quads',
-  'Calves',
-  'Hamstrings',
-  'Glutes',
-  'Abs',
-  'Shoulders'
+  'Chest', 'Upper Chest', 'Triceps', 'Biceps', 'Forearms', 'Back', 'Quads', 'Calves', 'Hamstrings', 'Glutes', 'Abs', 'Shoulders'
 ];
 
 app.get('/', (req, res) => {
@@ -266,25 +137,7 @@ app.get('/', (req, res) => {
     <head>
       <title>AllAroundAthlete - Starter Gym Planner</title>
       <meta name="viewport" content="width=device-width, initial-scale=1">
-      <style>
-        body { background: #181a1b; color: #f3f3f3; font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; }
-        .header { width: 100%; background: #232526; color: #4f8cff; font-size: 1.5em; font-weight: 700; padding: 18px 0; text-align: center; letter-spacing: 2px; box-shadow: 0 2px 8px #0004; }
-        .container { max-width: 420px; margin: 40px auto; background: #232526; border-radius: 12px; box-shadow: 0 4px 24px #000a; padding: 32px 28px 24px 28px; }
-        h1 { font-size: 1.7em; font-weight: 600; margin-bottom: 18px; letter-spacing: 1px; }
-        hr { border: none; border-top: 1px solid #333; margin: 18px 0; }
-        .option { display: block; margin: 7px 0; font-size: 1em; cursor: pointer; }
-        input[type="checkbox"], input[type="radio"] { accent-color: #4f8cff; margin-right: 8px; }
-        input[type="number"] { background: #232526; color: #f3f3f3; border: 1px solid #333; border-radius: 5px; padding: 8px 14px; margin: 4px 0 10px 0; width: 160px; font-size: 1.1em; }
-        input[type="range"] { background: #232526; color: #f3f3f3; border: 1px solid #333; border-radius: 5px; width: 120px; }
-        .max-disabled { background: #232526 !important; color: #888 !important; border-color: #444 !important; }
-        .max-label-disabled { color: #888 !important; }
-        .disabled-option { color: #888 !important; pointer-events: none; opacity: 0.6; }
-        .disabled-option input { pointer-events: none; }
-        button { background: #4f8cff; color: #fff; border: none; border-radius: 6px; padding: 10px 22px; font-size: 1em; font-weight: 500; cursor: pointer; margin-top: 18px; transition: background 0.2s; }
-        button:hover { background: #2563eb; }
-        label { user-select: none; }
-        @media (max-width: 600px) { .container { padding: 18px 6vw; } }
-      </style>
+      <link rel="stylesheet" href="/styles/main.css">
     </head>
     <body>
       <div class="header">AllAroundAthlete</div>
@@ -315,12 +168,6 @@ app.get('/', (req, res) => {
           </div>
           <hr>
           <div style="margin-bottom:12px;">
-            <label class="max-label" id="percentLabel">Recommended % of Max Weight: 
-              <input type="range" class="max-input" name="percent" min="50" max="90" value="70" oninput="document.getElementById('percentVal').innerText = this.value">
-              <span id="percentVal">70</span>%
-            </label>
-          </div>
-          <div style="margin-bottom:12px;">
             <label for="workout_time" class="option">How many minutes do you have to workout?
               <input type="number" id="workout_time" name="workout_time" min="10" max="180" value="60" required style="width:100px; font-size:1.1em; padding:8px 14px;">
             </label>
@@ -329,10 +176,6 @@ app.get('/', (req, res) => {
         </form>
       </div>
       <script>
-        // Grey out maxes if "I don't know my max weights" is checked
-        document.querySelector('input[type="range"]').addEventListener('input', function() {
-          document.getElementById('percentVal').innerText = this.value;
-        });
         document.getElementById('noMax').addEventListener('change', function() {
           const disabled = this.checked;
           document.querySelectorAll('.max-input').forEach(inp => {
@@ -343,15 +186,11 @@ app.get('/', (req, res) => {
           document.querySelectorAll('.max-label').forEach(lbl => {
             lbl.classList.toggle('max-label-disabled', disabled);
           });
-          document.getElementById('percentLabel').classList.toggle('max-label-disabled', disabled);
         });
-
-        // Beginner mode greys out non-beginner equipment and muscle groups
         document.getElementById('beginnerMode').addEventListener('change', function() {
           const beginnerEquip = ${JSON.stringify(BEGINNER_EQUIPMENT)};
           const beginnerMuscles = ${JSON.stringify(BEGINNER_MUSCLES)};
           const isBeginner = this.checked;
-
           document.querySelectorAll('.beginner-equip').forEach(label => {
             const eq = label.getAttribute('data-equip');
             if (isBeginner && !beginnerEquip.includes(eq)) {
@@ -400,7 +239,6 @@ app.post('/plan', (req, res) => {
   if (!selectedMuscles) selectedMuscles = [];
   if (!Array.isArray(selectedMuscles)) selectedMuscles = [selectedMuscles];
 
-  // Re-create options for form if needed
   const equipmentOptions = EQUIPMENT_LIST.map(eq =>
     `<label class="option beginner-equip" data-equip="${eq}"><input type="checkbox" name="equipment" value="${eq}"${selected.includes(eq) ? ' checked' : ''}> ${eq}</label>`
   ).join('');
@@ -410,21 +248,9 @@ app.post('/plan', (req, res) => {
 
   const repRange = mode === 'bulking' ? '4-8 reps, heavy weight' : '12-20 reps, light/moderate weight';
 
-  function getRecommendedWeight(ex) {
-    let max = 0;
-    if (ex.name.toLowerCase().includes('bench')) max = benchMax;
-    else if (ex.name.toLowerCase().includes('squat')) max = squatMax;
-    else if (ex.name.toLowerCase().includes('deadlift')) max = deadliftMax;
-    else if (ex.equipment.includes('Barbell') && ex.muscle_group === 'Chest') max = benchMax;
-    else if (ex.equipment.includes('Barbell') && ex.muscle_group === 'Quads') max = squatMax;
-    else if (ex.equipment.includes('Barbell') && ex.muscle_group === 'Back') max = deadliftMax;
-    if (noMax || max === 0) {
-      return 'Bodyweight or moderate weight';
-    }
-    return `${Math.round(max * percent / 100)} lbs (${percent}% of max)`;
-  }
+  // Use imported helper
+  // getRecommendedWeight(ex) is imported from helpers.js
 
-  // Beginner mode filter
   let filteredEquipment = selected;
   let filteredMuscles = selectedMuscles;
   if (beginnerMode) {
@@ -432,7 +258,6 @@ app.post('/plan', (req, res) => {
     filteredMuscles = filteredMuscles.filter(mg => BEGINNER_MUSCLES.includes(mg));
   }
 
-  // For each selected muscle group, pick up to N matching exercises
   let plan = [];
   filteredMuscles.forEach(muscle => {
     const matches = EXERCISES.filter(ex =>
@@ -467,7 +292,7 @@ app.post('/plan', (req, res) => {
               <td>${ex.equipment.join(', ')}</td>
               <td>${ex.muscle_group}</td>
               <td>${repRange}</td>
-              <td>${getRecommendedWeight(ex)}</td>
+              <td>${getRecommendedWeight(ex, benchMax, squatMax, deadliftMax, percent, noMax)}</td>
               <td style="max-width:200px">${ex.howto}</td>
               <td>
                 ${ex.video ? `<iframe width="160" height="90" src="${ex.video}" title="${ex.name} demo" frameborder="0" allowfullscreen style="border-radius:6px;"></iframe>` : ''}
@@ -484,31 +309,7 @@ app.post('/plan', (req, res) => {
     <head>
       <title>AllAroundAthlete - Starter Gym Planner</title>
       <meta name="viewport" content="width=device-width, initial-scale=1">
-      <style>
-        body { background: #181a1b; color: #f3f3f3; font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; }
-        .header { width: 100%; background: #232526; color: #4f8cff; font-size: 1.5em; font-weight: 700; padding: 18px 0; text-align: center; letter-spacing: 2px; box-shadow: 0 2px 8px #0004; }
-        .container { max-width: 900px; margin: 40px auto; background: #232526; border-radius: 12px; box-shadow: 0 4px 24px #000a; padding: 32px 28px 24px 28px; }
-        h1 { font-size: 1.7em; font-weight: 600; margin-bottom: 18px; letter-spacing: 1px; }
-        button, a.button { background: #4f8cff; color: #fff; border: none; border-radius: 6px; padding: 10px 22px; font-size: 1em; font-weight: 500; cursor: pointer; margin-top: 18px; transition: background 0.2s; text-decoration: none; display: inline-block; }
-        button:hover, a.button:hover { background: #2563eb; }
-        a { color: #4f8cff; text-decoration: none; font-weight: 500; }
-        a:hover { text-decoration: underline; }
-        .plan-table { width: 100%; border-collapse: collapse; margin-top: 18px; background: #232526; border-radius: 8px; overflow: hidden; }
-        .plan-table th, .plan-table td { padding: 12px 8px; text-align: left; vertical-align: top; }
-        .plan-table th { background: #181a1b; color: #4f8cff; border-bottom: 2px solid #333; }
-        .plan-table tr { border-bottom: 1px solid #333; }
-        .plan-table tr:last-child { border-bottom: none; }
-        .plan-table td { color: #f3f3f3; }
-        @media (max-width: 900px) {
-          .container { padding: 18px 2vw; }
-          .plan-table th, .plan-table td { padding: 8px 4px; font-size: 0.95em; }
-          .plan-table iframe { width: 100px; height: 56px; }
-        }
-        @media (max-width: 600px) {
-          .container { padding: 8px 0; }
-          .plan-table th, .plan-table td { font-size: 0.85em; }
-        }
-      </style>
+      <link rel="stylesheet" href="/styles/main.css">
     </head>
     <body>
       <div class="header">AllAroundAthlete</div>
