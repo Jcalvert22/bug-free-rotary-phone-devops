@@ -49,42 +49,119 @@ app.get('/', (req, res) => {
   const equipmentOptions = EQUIPMENT_LIST.map(eq => `<label class="option"><input type="checkbox" name="equipment" value="${eq}"> ${eq}</label>`).join('');
   const muscleOptions = MUSCLE_GROUPS.map(mg => `<label class="option"><input type="checkbox" name="muscle" value="${mg}"> ${mg}</label>`).join('');
   res.send(`
-    <h1>Starter Gym Planner</h1>
-    <form method="POST" action="/plan">
-      <p>Select the equipment you have access to:</p>
-      ${equipmentOptions}
-      <hr>
-      <p>Select the muscle groups you want to hit:</p>
-      ${muscleOptions}
-      <hr>
-      <p>
-        <label>
-          <input type="radio" name="mode" value="dieting" checked> Dieting (High reps, low weight)
-        </label>
-        <label>
-          <input type="radio" name="mode" value="bulking"> Bulking (Low reps, high weight)
-        </label>
-      </p>
-      <hr>
-      <p>
-        <label>Bench Press Max (lbs): <input type="number" name="bench_max" min="0" step="1" required></label><br>
-        <label>Squat Max (lbs): <input type="number" name="squat_max" min="0" step="1" required></label><br>
-        <label>Deadlift Max (lbs): <input type="number" name="deadlift_max" min="0" step="1" required></label>
-      </p>
-      <hr>
-      <p>
-        <label>Recommended % of Max Weight: 
-          <input type="range" name="percent" min="50" max="90" value="70" oninput="document.getElementById('percentVal').innerText = this.value">
-          <span id="percentVal">70</span>%
-        </label>
-      </p>
-      <button type="submit">Build My Plan</button>
-    </form>
-    <script>
-      document.querySelector('input[type="range"]').addEventListener('input', function() {
-        document.getElementById('percentVal').innerText = this.value;
-      });
-    </script>
+    <html>
+    <head>
+      <title>Starter Gym Planner</title>
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <style>
+        body {
+          background: #181a1b;
+          color: #f3f3f3;
+          font-family: 'Segoe UI', Arial, sans-serif;
+          margin: 0;
+          padding: 0;
+        }
+        .container {
+          max-width: 420px;
+          margin: 40px auto;
+          background: #232526;
+          border-radius: 12px;
+          box-shadow: 0 4px 24px #000a;
+          padding: 32px 28px 24px 28px;
+        }
+        h1 {
+          font-size: 1.7em;
+          font-weight: 600;
+          margin-bottom: 18px;
+          letter-spacing: 1px;
+        }
+        hr {
+          border: none;
+          border-top: 1px solid #333;
+          margin: 18px 0;
+        }
+        .option {
+          display: block;
+          margin: 7px 0;
+          font-size: 1em;
+          cursor: pointer;
+        }
+        input[type="checkbox"], input[type="radio"] {
+          accent-color: #4f8cff;
+          margin-right: 8px;
+        }
+        input[type="number"], input[type="range"] {
+          background: #232526;
+          color: #f3f3f3;
+          border: 1px solid #333;
+          border-radius: 5px;
+          padding: 5px 8px;
+          margin: 4px 0 10px 0;
+          width: 80px;
+        }
+        input[type="range"] {
+          width: 120px;
+        }
+        button {
+          background: #4f8cff;
+          color: #fff;
+          border: none;
+          border-radius: 6px;
+          padding: 10px 22px;
+          font-size: 1em;
+          font-weight: 500;
+          cursor: pointer;
+          margin-top: 18px;
+          transition: background 0.2s;
+        }
+        button:hover {
+          background: #2563eb;
+        }
+        label {
+          user-select: none;
+        }
+        @media (max-width: 600px) {
+          .container { padding: 18px 6vw; }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <h1>Starter Gym Planner</h1>
+        <form method="POST" action="/plan">
+          <p style="margin-bottom:8px;">Equipment:</p>
+          ${equipmentOptions}
+          <hr>
+          <p style="margin-bottom:8px;">Muscle Groups:</p>
+          ${muscleOptions}
+          <hr>
+          <div style="margin-bottom:12px;">
+            <label class="option"><input type="radio" name="mode" value="dieting" checked> Dieting (High reps, low weight)</label>
+            <label class="option"><input type="radio" name="mode" value="bulking"> Bulking (Low reps, high weight)</label>
+          </div>
+          <hr>
+          <div style="margin-bottom:12px;">
+            <label>Bench Press Max (lbs): <input type="number" name="bench_max" min="0" step="1" required></label><br>
+            <label>Squat Max (lbs): <input type="number" name="squat_max" min="0" step="1" required></label><br>
+            <label>Deadlift Max (lbs): <input type="number" name="deadlift_max" min="0" step="1" required></label>
+          </div>
+          <hr>
+          <div style="margin-bottom:12px;">
+            <label>Recommended % of Max Weight: 
+              <input type="range" name="percent" min="50" max="90" value="70" oninput="document.getElementById('percentVal').innerText = this.value">
+              <span id="percentVal">70</span>%
+            </label>
+          </div>
+          <button type="submit">Build My Plan</button>
+        </form>
+      </div>
+      <script>
+        document.querySelector('input[type="range"]').addEventListener('input', function() {
+          document.getElementById('percentVal').innerText = this.value;
+        });
+      </script>
+    </body>
+    </html>
   `);
 });
 
