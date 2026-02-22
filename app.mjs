@@ -30,18 +30,90 @@ const MUSCLE_GROUPS = [
 ];
 
 const EXERCISES = [
-  { name: "Push-up", equipment: ["Bodyweight"], muscle_group: "Chest" },
-  { name: "Incline Push-up", equipment: ["Bodyweight", "Bench"], muscle_group: "Upper Chest" },
-  { name: "Triceps Dip", equipment: ["Bodyweight", "Bench"], muscle_group: "Triceps" },
-  { name: "Bicep Curl", equipment: ["Dumbbells", "Barbell", "Resistance Bands"], muscle_group: "Biceps" },
-  { name: "Wrist Curl", equipment: ["Dumbbells", "Barbell"], muscle_group: "Forearms" },
-  { name: "Pull-up", equipment: ["Pull-up Bar"], muscle_group: "Back" },
-  { name: "Shrug", equipment: ["Dumbbells", "Barbell"], muscle_group: "Traps" },
-  { name: "Squat", equipment: ["Bodyweight", "Barbell", "Dumbbells"], muscle_group: "Quads" },
-  { name: "Calf Raise", equipment: ["Bodyweight", "Dumbbells"], muscle_group: "Calves" },
-  { name: "Hamstring Curl", equipment: ["Resistance Bands"], muscle_group: "Hamstrings" },
-  { name: "Bench Press", equipment: ["Barbell", "Bench", "Dumbbells"], muscle_group: "Chest" },
-  { name: "Deadlift", equipment: ["Barbell", "Dumbbells"], muscle_group: "Back" }
+  { 
+    name: "Push-up", 
+    equipment: ["Bodyweight"], 
+    muscle_group: "Chest",
+    howto: "Start in a plank position with hands under shoulders. Lower your body until your chest nearly touches the floor, then push back up.",
+    video: "https://www.youtube.com/embed/_l3ySVKYVJ8"
+  },
+  { 
+    name: "Incline Push-up", 
+    equipment: ["Bodyweight", "Bench"], 
+    muscle_group: "Upper Chest",
+    howto: "Place your hands on a bench or elevated surface. Keep your body straight, lower your chest to the bench, then push back up.",
+    video: "https://www.youtube.com/embed/cyJ6F6gCk3E"
+  },
+  { 
+    name: "Triceps Dip", 
+    equipment: ["Bodyweight", "Bench"], 
+    muscle_group: "Triceps",
+    howto: "Sit on a bench, place hands beside hips. Slide off, lower your body by bending elbows, then press back up.",
+    video: "https://www.youtube.com/embed/0326dy_-CzM"
+  },
+  { 
+    name: "Bicep Curl", 
+    equipment: ["Dumbbells", "Barbell", "Resistance Bands"], 
+    muscle_group: "Biceps",
+    howto: "Hold weights at your sides, palms forward. Curl weights up while keeping elbows close, then lower slowly.",
+    video: "https://www.youtube.com/embed/ykJmrZ5v0Oo"
+  },
+  { 
+    name: "Wrist Curl", 
+    equipment: ["Dumbbells", "Barbell"], 
+    muscle_group: "Forearms",
+    howto: "Sit and rest forearms on thighs, palms up, holding weights. Curl wrists upward, then lower.",
+    video: "https://www.youtube.com/embed/2A1p5r6b9JU"
+  },
+  { 
+    name: "Pull-up", 
+    equipment: ["Pull-up Bar"], 
+    muscle_group: "Back",
+    howto: "Hang from a bar with palms away. Pull your chin above the bar, then lower with control.",
+    video: "https://www.youtube.com/embed/eGo4IYlbE5g"
+  },
+  { 
+    name: "Shrug", 
+    equipment: ["Dumbbells", "Barbell"], 
+    muscle_group: "Traps",
+    howto: "Hold weights at your sides. Shrug shoulders up toward ears, then lower.",
+    video: "https://www.youtube.com/embed/6TSP1TRMUzs"
+  },
+  { 
+    name: "Squat", 
+    equipment: ["Bodyweight", "Barbell", "Dumbbells"], 
+    muscle_group: "Quads",
+    howto: "Stand with feet shoulder-width apart. Lower hips back and down, then stand back up.",
+    video: "https://www.youtube.com/embed/aclHkVaku9U"
+  },
+  { 
+    name: "Calf Raise", 
+    equipment: ["Bodyweight", "Dumbbells"], 
+    muscle_group: "Calves",
+    howto: "Stand tall, push through the balls of your feet to raise your body upward, then lower.",
+    video: "https://www.youtube.com/embed/-M4-G8p8fmc"
+  },
+  { 
+    name: "Hamstring Curl", 
+    equipment: ["Resistance Bands"], 
+    muscle_group: "Hamstrings",
+    howto: "Anchor band, lie face down, hook band to ankles, curl heels toward glutes, then return.",
+    video: "https://www.youtube.com/embed/1Tq3QdYUuHs"
+  },
+  { 
+    name: "Bench Press", 
+    equipment: ["Barbell", "Bench", "Dumbbells"], 
+    muscle_group: "Chest",
+    howto: "Lie on a bench, grip bar wider than shoulders. Lower bar to chest, then press up.",
+    video: "https://www.youtube.com/embed/gRVjAtPip0Y"
+  },
+  { 
+    name: "Deadlift", 
+    equipment: ["Barbell", "Dumbbells"], 
+    muscle_group: "Back",
+    howto: "Stand with feet hip-width, grip bar. Hinge at hips, lift bar by straightening hips and knees.",
+    video: "https://www.youtube.com/embed/op9kVnSso6Q"
+  }
 ];
 
 app.get('/', (req, res) => {
@@ -173,6 +245,8 @@ app.post('/plan', (req, res) => {
             <th>Muscle Group</th>
             <th>Rep Range</th>
             <th>Recommended Weight</th>
+            <th>How To</th>
+            <th>Demo</th>
           </tr>
         </thead>
         <tbody>
@@ -183,6 +257,10 @@ app.post('/plan', (req, res) => {
               <td>${ex.muscle_group}</td>
               <td>${repRange}</td>
               <td>${getRecommendedWeight(ex)}</td>
+              <td style="max-width:200px">${ex.howto}</td>
+              <td>
+                <iframe width="160" height="90" src="${ex.video}" title="${ex.name} demo" frameborder="0" allowfullscreen style="border-radius:6px;"></iframe>
+              </td>
             </tr>
           `).join('')}
         </tbody>
@@ -198,21 +276,26 @@ app.post('/plan', (req, res) => {
       <style>
         body { background: #181a1b; color: #f3f3f3; font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; }
         .header { width: 100%; background: #232526; color: #4f8cff; font-size: 1.5em; font-weight: 700; padding: 18px 0; text-align: center; letter-spacing: 2px; box-shadow: 0 2px 8px #0004; }
-        .container { max-width: 600px; margin: 40px auto; background: #232526; border-radius: 12px; box-shadow: 0 4px 24px #000a; padding: 32px 28px 24px 28px; }
+        .container { max-width: 900px; margin: 40px auto; background: #232526; border-radius: 12px; box-shadow: 0 4px 24px #000a; padding: 32px 28px 24px 28px; }
         h1 { font-size: 1.7em; font-weight: 600; margin-bottom: 18px; letter-spacing: 1px; }
         button, a.button { background: #4f8cff; color: #fff; border: none; border-radius: 6px; padding: 10px 22px; font-size: 1em; font-weight: 500; cursor: pointer; margin-top: 18px; transition: background 0.2s; text-decoration: none; display: inline-block; }
         button:hover, a.button:hover { background: #2563eb; }
         a { color: #4f8cff; text-decoration: none; font-weight: 500; }
         a:hover { text-decoration: underline; }
         .plan-table { width: 100%; border-collapse: collapse; margin-top: 18px; background: #232526; border-radius: 8px; overflow: hidden; }
-        .plan-table th, .plan-table td { padding: 12px 8px; text-align: left; }
+        .plan-table th, .plan-table td { padding: 12px 8px; text-align: left; vertical-align: top; }
         .plan-table th { background: #181a1b; color: #4f8cff; border-bottom: 2px solid #333; }
         .plan-table tr { border-bottom: 1px solid #333; }
         .plan-table tr:last-child { border-bottom: none; }
         .plan-table td { color: #f3f3f3; }
-        @media (max-width: 700px) {
-          .container { padding: 18px 6vw; }
+        @media (max-width: 900px) {
+          .container { padding: 18px 2vw; }
           .plan-table th, .plan-table td { padding: 8px 4px; font-size: 0.95em; }
+          .plan-table iframe { width: 100px; height: 56px; }
+        }
+        @media (max-width: 600px) {
+          .container { padding: 8px 0; }
+          .plan-table th, .plan-table td { font-size: 0.85em; }
         }
       </style>
     </head>
