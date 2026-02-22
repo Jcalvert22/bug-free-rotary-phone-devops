@@ -168,6 +168,12 @@ app.get('/', (req, res) => {
           </div>
           <hr>
           <div style="margin-bottom:12px;">
+            <label class="max-label" id="percentLabel">Recommended % of Max Weight: 
+              <input type="range" class="max-input" name="percent" min="50" max="90" value="70" oninput="document.getElementById('percentVal').innerText = this.value">
+              <span id="percentVal">70</span>%
+            </label>
+          </div>
+          <div style="margin-bottom:12px;">
             <label for="workout_time" class="option">How many minutes do you have to workout?
               <input type="number" id="workout_time" name="workout_time" min="10" max="180" value="60" required style="width:100px; font-size:1.1em; padding:8px 14px;">
             </label>
