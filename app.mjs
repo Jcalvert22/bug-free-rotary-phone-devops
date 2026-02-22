@@ -141,9 +141,12 @@ app.get('/', (req, res) => {
           </div>
           <hr>
           <div style="margin-bottom:12px;">
-            <label>Bench Press Max (lbs): <input type="number" name="bench_max" min="0" step="1" required></label><br>
-            <label>Squat Max (lbs): <input type="number" name="squat_max" min="0" step="1" required></label><br>
-            <label>Deadlift Max (lbs): <input type="number" name="deadlift_max" min="0" step="1" required></label>
+            <label class="option"><input type="checkbox" id="noMax" name="no_max"> I don't know my max weights</label>
+            <div id="maxInputs">
+              <label>Bench Press Max (lbs): <input type="number" name="bench_max" min="0" step="1" required></label><br>
+              <label>Squat Max (lbs): <input type="number" name="squat_max" min="0" step="1" required></label><br>
+              <label>Deadlift Max (lbs): <input type="number" name="deadlift_max" min="0" step="1" required></label>
+            </div>
           </div>
           <hr>
           <div style="margin-bottom:12px;">
@@ -158,6 +161,14 @@ app.get('/', (req, res) => {
       <script>
         document.querySelector('input[type="range"]').addEventListener('input', function() {
           document.getElementById('percentVal').innerText = this.value;
+        });
+        // Disable/enable max inputs if "no max" is checked
+        document.getElementById('noMax').addEventListener('change', function() {
+          const disabled = this.checked;
+          document.querySelectorAll('#maxInputs input').forEach(inp => {
+            inp.disabled = disabled;
+            inp.required = !disabled;
+          });
         });
       </script>
     </body>
