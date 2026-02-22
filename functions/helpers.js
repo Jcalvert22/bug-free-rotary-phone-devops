@@ -1,5 +1,3 @@
-import { getRecommendedWeight } from './functions/helpers.js';
-
 export function getRecommendedWeight(ex, benchMax, squatMax, deadliftMax, percent, noMax) {
   let max = 0;
   if (ex.name.toLowerCase().includes('bench')) max = benchMax;
@@ -13,5 +11,3 @@ export function getRecommendedWeight(ex, benchMax, squatMax, deadliftMax, percen
   }
   return `${Math.round(max * percent / 100)} lbs (${percent}% of max)`;
 }
-
-app.use('/styles', express.static('styles'));
