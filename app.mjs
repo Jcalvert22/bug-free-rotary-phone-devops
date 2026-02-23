@@ -7,7 +7,7 @@ app.use('/styles', express.static('styles'));
 app.use('/images', express.static('public/images'));
 
 const EQUIPMENT_LIST = [
-  'Dumbbells', 'Barbell', 'Bench', 'Pull-up Bar', 'Kettlebell', 'Resistance Bands', 'Treadmill', 'Stationary Bike', 'Bodyweight Only', 'Smith Machine', 'Cable Machine', 'Leg Press Machine', 'Chest Press Machine', 'Lat Pulldown Machine', 'Seated Row Machine', 'Pec Deck Machine', 'Leg Extension Machine', 'Leg Curl Machine', 'Calf Raise Machine', 'Dip Station', 'Ab Wheel', 'Medicine Ball', 'EZ Curl Bar', 'Trap Bar', 'Power Rack', 'Squat Rack', 'Preacher Curl Bench', 'Incline Bench', 'Decline Bench', 'Flat Bench', 'Roman Chair', 'Hyperextension Bench', 'Stepper', 'Elliptical', 'Rowing Machine', 'Battle Ropes', 'Sled', 'Landmine Attachment', 'Pulling Sled', 'Plyo Box', 'Jump Rope', 'Weighted Vest', 'Ankle Weights', 'Foam Roller', 'Stability Ball', 'Bosu Ball', 'Mini Bands', 'Suspension Trainer', 'Parallettes', 'Push-up Handles', 'Grip Trainer', 'Farmer’s Walk Handles', 'Sissy Squat Machine', 'Glute Ham Developer', 'Reverse Hyper Machine', 'Hack Squat Machine', 'Thigh Abductor Machine', 'Thigh Adductor Machine', 'Hip Thrust Machine', 'Chest Fly Machine', 'Shoulder Press Machine', 'Seated Calf Machine', 'Standing Calf Machine', 'Wrist Roller', 'Weighted Sled', 'T-Bar Row Machine', 'Multi-Station Gym', 'Stepper Machine', 'Air Bike', 'SkiErg', 'Ab Crunch Machine'
+  'Dumbbells', 'Barbell', 'Bench', 'Pull-up Bar', 'Kettlebell', 'Resistance Bands', 'Treadmill', 'Stationary Bike', 'Bodyweight Only', 'Smith Machine', 'Cable Machine', 'Leg Press Machine', 'Chest Press Machine', 'Lat Pulldown Machine', 'Seated Row Machine', 'Pec Deck Machine', 'Leg Extension Machine', 'Leg Curl Machine', 'Calf Raise Machine', 'Dip Station', 'Ab Wheel', 'Medicine Ball', 'EZ Curl Bar', 'Trap Bar', 'Power Rack', 'Squat Rack', 'Preacher Curl Bench', 'Incline Bench', 'Decline Bench', 'Flat Bench', 'Roman Chair', 'Hyperextension Bench', 'Stepper', 'Elliptical', 'Rowing Machine', 'Battle Ropes', 'Sled', 'Landmine Attachment', 'Pulling Sled', 'Plyo Box', 'Jump Rope', 'Weighted Vest', 'Ankle Weights', 'Foam Roller', 'Stability Ball', 'Bosu Ball', 'Mini Bands', 'Suspension Trainer', 'Parallettes', 'Push-up Handles', 'Grip Trainer', 'Farmer’s Walk Handles', 'Sissy Squat Machine', 'Glute Ham Developer', 'Reverse Hyper Machine', 'Hack Squat Machine', 'Thigh Abductor Machine', 'Thigh Adductor Machine', 'Hip Thrust Machine', 'Chest Fly Machine', 'Shoulder Press Machine', 'Seated Calf Machine', 'Standing Calf Machine', 'Wrist Roller', 'T-Bar Row Machine', 'Multi-Station Gym', 'Stepper Machine', 'Air Bike', 'SkiErg', 'Ab Crunch Machine'
 ];
 
 const MUSCLE_GROUPS = [
@@ -117,32 +117,35 @@ const EXERCISES = [
   { name: "SkiErg Pull", equipment: ["SkiErg"], muscle_group: "Back", howto: "Pull handles down in a skiing motion.", video: "" }
 ];
 
-const BEGINNER_EQUIPMENT = [
-  'Dumbbells', 'Bench', 'Resistance Bands', 'Bodyweight Only', 'Stationary Bike', 'Treadmill', 'Kettlebell', 'Pull-up Bar', 'Medicine Ball', 'Step-up Box', 'Incline Bench', 'Flat Bench', 'Jump Rope', 'Seated Row Machine', 'Lat Pulldown Machine', 'Leg Press Machine', 'Leg Extension Machine', 'Leg Curl Machine', 'Chest Press Machine', 'Shoulder Press Machine', 'Pec Deck Machine', 'Ab Crunch Machine', 'Stepper', 'Elliptical', 'Rowing Machine'
-];
+const EQUIPMENT_CATEGORIES = {
+  'Strength Machines': [
+    'Dumbbells', 'Barbell', 'Bench', 'Smith Machine', 'Cable Machine', 'Leg Press Machine', 'Chest Press Machine', 'Lat Pulldown Machine', 'Seated Row Machine', 'Pec Deck Machine', 'Leg Extension Machine', 'Leg Curl Machine', 'Calf Raise Machine', 'Dip Station', 'EZ Curl Bar', 'Trap Bar', 'Power Rack', 'Squat Rack', 'Preacher Curl Bench', 'Incline Bench', 'Decline Bench', 'Flat Bench', 'Roman Chair', 'Hyperextension Bench', 'Sissy Squat Machine', 'Glute Ham Developer', 'Reverse Hyper Machine', 'Hack Squat Machine', 'Thigh Abductor Machine', 'Thigh Adductor Machine', 'Hip Thrust Machine', 'Chest Fly Machine', 'Shoulder Press Machine', 'Seated Calf Machine', 'Standing Calf Machine', 'Wrist Roller', 'T-Bar Row Machine', 'Multi-Station Gym', 'Ab Crunch Machine'
+  ],
+  'Cardio Machines': [
+    'Treadmill', 'Stationary Bike', 'Stepper', 'Elliptical', 'Rowing Machine', 'Stepper Machine', 'Air Bike', 'SkiErg'
+  ],
+  'Functional/Crossfit Equipment': [
+    'Kettlebell', 'Resistance Bands', 'Bodyweight Only', 'Ab Wheel', 'Medicine Ball', 'Landmine Attachment', 'Pulling Sled', 'Plyo Box', 'Jump Rope', 'Weighted Vest', 'Ankle Weights', 'Foam Roller', 'Stability Ball', 'Bosu Ball', 'Mini Bands', 'Suspension Trainer', 'Parallettes', 'Push-up Handles', 'Grip Trainer', 'Farmer’s Walk Handles', 'Weighted Sled', 'Battle Ropes', 'Sled'
+  ]
+};
 
-const BEGINNER_MUSCLES = [
-  'Chest', 'Upper Chest', 'Triceps', 'Biceps', 'Forearms', 'Back', 'Quads', 'Calves', 'Hamstrings', 'Glutes', 'Abs', 'Shoulders'
-];
-
-function getRecommendedWeight(ex, benchMax, squatMax, deadliftMax, percent, noMax) {
-  let max = 0;
-  if (ex.name.toLowerCase().includes('bench')) max = benchMax;
-  else if (ex.name.toLowerCase().includes('squat')) max = squatMax;
-  else if (ex.name.toLowerCase().includes('deadlift')) max = deadliftMax;
-  else if (ex.equipment.includes('Barbell') && ex.muscle_group === 'Chest') max = benchMax;
-  else if (ex.equipment.includes('Barbell') && ex.muscle_group === 'Quads') max = squatMax;
-  else if (ex.equipment.includes('Barbell') && ex.muscle_group === 'Back') max = deadliftMax;
-  if (noMax || max === 0) {
-    return 'Bodyweight or moderate weight';
-  }
-  return `${Math.round(max * percent / 100)} lbs (${percent}% of max)`;
+function renderEquipmentCategories(beginnerMode = false) {
+  return Object.entries(EQUIPMENT_CATEGORIES).map(([cat, items]) => `
+    <div class="equip-category">
+      <button type="button" onclick="toggleSection('${cat.replace(/\s+/g,'-')}-section')" class="toggle-btn">${cat}</button>
+      <div id="${cat.replace(/\s+/g,'-')}-section" style="display:none;margin-bottom:12px;">
+        ${items.map(eq => {
+          const isBeginner = !beginnerMode || (typeof BEGINNER_EQUIPMENT !== 'undefined' && BEGINNER_EQUIPMENT.includes(eq));
+          return `<label class="option${isBeginner ? '' : ' disabled-option'} beginner-equip" data-equip="${eq}"><input type="checkbox" name="equipment" value="${eq}"${isBeginner ? '' : ' disabled'}> ${eq}</label>`;
+        }).join('')}
+      </div>
+    </div>
+  `).join('');
 }
 
 app.get('/', (req, res) => {
-  const equipmentOptions = EQUIPMENT_LIST.map(eq =>
-    `<label class="option beginner-equip" data-equip="${eq}"><input type="checkbox" name="equipment" value="${eq}"> ${eq}</label>`
-  ).join('');
+  const beginnerMode = false; // Always false for GET, unless you want to persist state
+  const equipmentOptions = renderEquipmentCategories(beginnerMode);
   const muscleOptions = MUSCLE_GROUPS.map(mg =>
     `<label class="option beginner-muscle" data-muscle="${mg}"><input type="checkbox" name="muscle" value="${mg}"> ${mg}</label>`
   ).join('');
@@ -158,7 +161,7 @@ app.get('/', (req, res) => {
         <div class="header-content">
           <img src="/images/allaround-athlete-logo.png" alt="AllAroundAthlete Logo" style="height:90px;width:auto;margin-right:22px;background:transparent;border-radius:6px;display:block;">
           <span style="font-size:1.2em;font-weight:700;color:#4f8cff;letter-spacing:2px;margin-right:32px;">All-Around Athlete</span>
-          <nav class="header-tabs"><!-- future tabs --></nav>
+          <nav class="header-tabs"><a href="/">Home</a> | <a href="/dashboard">My Profile</a></nav>
         </div>
       </header>
       <div class="container">
@@ -171,69 +174,64 @@ app.get('/', (req, res) => {
           ${equipmentOptions}
           <hr>
           <p style="margin-bottom:8px;">Muscle Groups:</p>
-          ${muscleOptions}
+          <button type="button" onclick="toggleSection('muscle-section')" class="toggle-btn">Show options</button>
+          <div id="muscle-section" style="display:none;margin-bottom:12px;">
+            ${muscleOptions}
+          </div>
           <hr>
           <div style="margin-bottom:12px;">
             <label class="option"><input type="radio" name="mode" value="dieting" checked> Dieting (High reps, low weight)</label>
             <label class="option"><input type="radio" name="mode" value="bulking"> Bulking (Low reps, high weight)</label>
           </div>
-          <hr>
           <div style="margin-bottom:12px;">
-            <label class="option"><input type="checkbox" id="noMax" name="no_max"> I don't know my max weights</label>
-            <div id="maxInputs">
-              <label class="max-label" id="benchLabel">Bench Press Max (lbs): <input type="number" class="max-input" name="bench_max" min="0" step="1" required></label><br>
-              <label class="max-label" id="squatLabel">Squat Max (lbs): <input type="number" class="max-input" name="squat_max" min="0" step="1" required></label><br>
-              <label class="max-label" id="deadliftLabel">Deadlift Max (lbs): <input type="number" class="max-input" name="deadlift_max" min="0" step="1" required></label>
-            </div>
+            <label class="option">Max Weight (lbs): <input type="number" name="max_weight" min="0" step="1"></label>
+            <label class="option"><input type="checkbox" id="noMax" name="no_max"> I don't know my max</label>
           </div>
-          <hr>
           <div style="margin-bottom:12px;">
-            <label for="workout_time" class="option">How many minutes do you have to workout?
-              <input type="number" id="workout_time" name="workout_time" min="10" max="180" value="60" required style="width:100px; font-size:1.1em; padding:8px 14px;">
-            </label>
+            <label class="option">Workout Duration (minutes): <input type="number" name="duration" min="10" max="180" step="5" value="60"></label>
           </div>
-          <button type="submit">Build My Plan</button>
+          <button type="submit" class="button">Build My Plan</button>
         </form>
       </div>
       <script>
-        document.getElementById('noMax').addEventListener('change', function() {
-          const disabled = this.checked;
-          document.querySelectorAll('.max-input').forEach(inp => {
-            inp.disabled = disabled;
-            inp.required = !disabled;
-            inp.classList.toggle('max-disabled', disabled);
-          });
-          document.querySelectorAll('.max-label').forEach(lbl => {
-            lbl.classList.toggle('max-label-disabled', disabled);
-          });
-        });
-        document.getElementById('beginnerMode').addEventListener('change', function() {
-          const beginnerEquip = ${JSON.stringify(BEGINNER_EQUIPMENT)};
-          const beginnerMuscles = ${JSON.stringify(BEGINNER_MUSCLES)};
-          const isBeginner = this.checked;
+      function toggleSection(id) {
+        const section = document.getElementById(id);
+        section.style.display = section.style.display === 'none' ? 'block' : 'none';
+      }
+      // Beginner mode dynamic disabling
+      const BEGINNER_EQUIPMENT = [
+        'Dumbbells', 'Bench', 'Bodyweight Only', 'Resistance Bands', 'Pull-up Bar', 'Stationary Bike', 'Treadmill', 'Kettlebell', 'StepMill', 'Jump Rope', 'Foam Roller', 'Stability Ball', 'Mini Bands', 'Push-up Handles', 'Grip Trainer', 'Medicine Ball', 'Ab Wheel', 'Parallettes', 'Suspension Trainer', 'Roman Chair', 'Hyperextension Bench', 'Stepper', 'Elliptical', 'Rowing Machine', 'Weighted Vest', 'Ankle Weights', 'Bosu Ball'
+      ];
+      const BEGINNER_MUSCLES = [
+        'Chest', 'Triceps', 'Biceps', 'Back', 'Quads', 'Hamstrings', 'Calves', 'Glutes', 'Abs', 'Shoulders', 'Forearms', 'Lats', 'Upper Back', 'Traps'
+      ];
+      document.addEventListener('DOMContentLoaded', function() {
+        const beginnerCheckbox = document.getElementById('beginnerMode');
+        beginnerCheckbox.addEventListener('change', function() {
           document.querySelectorAll('.beginner-equip').forEach(label => {
-            const eq = label.getAttribute('data-equip');
-            if (isBeginner && !beginnerEquip.includes(eq)) {
+            const equip = label.getAttribute('data-equip');
+            const input = label.querySelector('input[type="checkbox"]');
+            if (beginnerCheckbox.checked && !BEGINNER_EQUIPMENT.includes(equip)) {
               label.classList.add('disabled-option');
-              label.querySelector('input').checked = false;
-              label.querySelector('input').disabled = true;
+              input.disabled = true;
             } else {
               label.classList.remove('disabled-option');
-              label.querySelector('input').disabled = false;
+              input.disabled = false;
             }
           });
           document.querySelectorAll('.beginner-muscle').forEach(label => {
-            const mg = label.getAttribute('data-muscle');
-            if (isBeginner && !beginnerMuscles.includes(mg)) {
+            const muscle = label.getAttribute('data-muscle');
+            const input = label.querySelector('input[type="checkbox"]');
+            if (beginnerCheckbox.checked && !BEGINNER_MUSCLES.includes(muscle)) {
               label.classList.add('disabled-option');
-              label.querySelector('input').checked = false;
-              label.querySelector('input').disabled = true;
+              input.disabled = true;
             } else {
               label.classList.remove('disabled-option');
-              label.querySelector('input').disabled = false;
+              input.disabled = false;
             }
           });
         });
+      });
       </script>
     </body>
     </html>
@@ -336,7 +334,7 @@ app.post('/plan', (req, res) => {
         <div class="header-content">
           <img src="/images/allaround-athlete-logo.png" alt="AllAroundAthlete Logo" style="height:90px;width:auto;margin-right:22px;background:transparent;border-radius:6px;display:block;">
           <span style="font-size:1.2em;font-weight:700;color:#4f8cff;letter-spacing:2px;margin-right:32px;">All-Around Athlete</span>
-          <nav class="header-tabs"><!-- future tabs --></nav>
+          <nav class="header-tabs"><a href="/">Home</a> | <a href="/dashboard">My Profile</a></nav>
         </div>
       </header>
       <div class="container">
@@ -344,6 +342,71 @@ app.post('/plan', (req, res) => {
         <p>Based on your equipment, muscle group(s), and goal (${mode === 'bulking' ? 'Bulking' : 'Dieting'}):</p>
         ${planTable}
         <a href="/" class="button">Back</a>
+      </div>
+    </body>
+    </html>
+  `);
+});
+
+app.get('/dashboard', (req, res) => {
+  // Placeholder values for now
+  const userDuration = '3 weeks'; // Replace with real tracking
+  const savedWorkouts = ['Push/Pull/Legs', 'Full Body Beginner', 'Upper Body Blast']; // Replace with real saved workouts
+  const deadliftMax = 315; // Replace with real user input
+  const benchMax = 225; // Replace with real user input
+  const squatMax = 275; // Replace with real user input
+  const userWeight = 180; // Replace with real user input
+  const userHeight = 70; // Replace with real user input
+
+  res.send(`
+    <html>
+    <head>
+      <title>User Dashboard - AllAroundAthlete</title>
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <link rel="stylesheet" href="/styles/main.css">
+    </head>
+    <body>
+      <header class="header">
+        <div class="header-content">
+          <img src="/images/allaround-athlete-logo.png" alt="AllAroundAthlete Logo" style="height:90px;width:auto;margin-right:22px;background:transparent;border-radius:6px;display:block;">
+          <span style="font-size:1.2em;font-weight:700;color:#4f8cff;letter-spacing:2px;margin-right:32px;">All-Around Athlete</span>
+          <nav class="header-tabs"><a href="/">Home</a> | <a href="/dashboard">My Profile</a></nav>
+        </div>
+      </header>
+      <div class="container">
+        <h1>User Dashboard</h1>
+        <div style="margin-bottom:18px;">
+          <strong>Time Using App:</strong> ${userDuration}
+        </div>
+        <div style="margin-bottom:18px;">
+          <strong>Saved Workouts:</strong>
+          <ul>
+            ${savedWorkouts.map(w => `<li>${w}</li>`).join('')}
+          </ul>
+        </div>
+        <div style="margin-bottom:18px;">
+          <strong>Maxes:</strong>
+          <ul>
+            <li>Deadlift: ${deadliftMax} lbs</li>
+            <li>Bench Press: ${benchMax} lbs</li>
+            <li>Squat: ${squatMax} lbs</li>
+          </ul>
+        </div>
+        <div style="margin-bottom:18px;">
+          <strong>Stats:</strong>
+          <ul>
+            <li>Weight: ${userWeight} lbs</li>
+            <li>Height: ${userHeight} in</li>
+          </ul>
+        </div>
+        <div style="margin-bottom:18px;">
+          <strong>Progress Tracking:</strong>
+          <ul>
+            <li>Update maxes, weight, and height</li>
+            <li>Track workout frequency</li>
+            <li>View progress charts (coming soon)</li>
+          </ul>
+        </div>
       </div>
     </body>
     </html>

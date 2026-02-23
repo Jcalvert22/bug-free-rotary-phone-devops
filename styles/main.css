@@ -1,22 +1,202 @@
-body { background: #181a1b; color: #f3f3f3; font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; }
-.header { width: 100%; background: #232526; color: #4f8cff; font-size: 1.5em; font-weight: 700; padding: 0; text-align: left; letter-spacing: 2px; box-shadow: 0 2px 8px #0004; }
-.header-content { display: flex; align-items: center; height: 64px; max-width: 1200px; margin: 0 auto; padding: 0 24px; }
-.logo { height: 44px; width: auto; margin-right: 18px; background: transparent; border-radius: 6px; display: block; }
-.app-title { font-size: 1.4em; font-weight: 700; color: #4f8cff; letter-spacing: 2px; text-transform: lowercase; margin-right: 32px; }
-.header-tabs { flex: 1; display: flex; align-items: center; justify-content: flex-end; min-width: 120px; /* Placeholder for future tabs */ }
-.container { max-width: 420px; margin: 40px auto; background: #232526; border-radius: 12px; box-shadow: 0 4px 24px #000a; padding: 32px 28px 24px 28px; }
-h1 { font-size: 1.7em; font-weight: 600; margin-bottom: 18px; letter-spacing: 1px; }
-hr { border: none; border-top: 1px solid #333; margin: 18px 0; }
-.option { display: block; margin: 7px 0; font-size: 1em; cursor: pointer; }
-input[type="checkbox"], input[type="radio"] { accent-color: #4f8cff; margin-right: 8px; }
-input[type="number"] { background: #232526; color: #f3f3f3; border: 1px solid #333; border-radius: 5px; padding: 8px 14px; margin: 4px 0 10px 0; width: 160px; font-size: 1.1em; }
-input[type="range"] { background: #232526; color: #f3f3f3; border: 1px solid #333; border-radius: 5px; width: 120px; }
-.max-disabled { background: #232526 !important; color: #888 !important; border-color: #444 !important; }
-.max-label-disabled { color: #888 !important; }
-.disabled-option { color: #888 !important; pointer-events: none; opacity: 0.6; }
-.disabled-option input { pointer-events: none; }
-button { background: #4f8cff; color: #fff; border: none; border-radius: 6px; padding: 10px 22px; font-size: 1em; font-weight: 500; cursor: pointer; margin-top: 18px; transition: background 0.2s; }
-button:hover { background: #2563eb; }
-label { user-select: none; }
-@media (max-width: 600px) { .container { padding: 18px 6vw; }
+body {
+  background: linear-gradient(135deg, #181a1b 0%, #232526 60%, #2563eb 100%);
+  color: #f3f3f3;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+.header {
+  width: 100%;
+  background: rgba(35, 37, 38, 0.95);
+  color: #4f8cff;
+  font-size: 1.5em;
+  font-weight: 700;
+  padding: 0;
+  text-align: left;
+  letter-spacing: 2px;
+  box-shadow: 0 2px 8px #0004;
+  border-bottom: 1px solid #2563eb;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  height: 64px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.logo {
+  height: 44px;
+  width: auto;
+  margin-right: 18px;
+  background: transparent;
+  border-radius: 6px;
+  display: block;
+}
+
+.app-title {
+  font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
+  font-size: 1.2em;
+  font-weight: 700;
+  color: #4f8cff;
+  letter-spacing: 2px;
+  margin-right: 32px;
+}
+
+.header-tabs {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 120px;
+  /* Placeholder for future tabs */
+}
+
+.header-tabs a {
+  color: #4f8cff;
+  text-decoration: none;
+  font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
+  font-weight: 600;
+  margin: 0 8px;
+  transition: color 0.2s;
+}
+
+.header-tabs a:hover {
+  color: #2563eb;
+}
+
+.container {
+  max-width: 420px;
+  margin: 40px auto;
+  background: rgba(35, 37, 38, 0.92);
+  border-radius: 16px;
+  box-shadow: 0 4px 24px #000a;
+  padding: 32px 28px 24px 28px;
+}
+
+h1 {
+  font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
+  font-size: 1.7em;
+  font-weight: 600;
+  margin-bottom: 18px;
+  letter-spacing: 1px;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid #333;
+  margin: 18px 0;
+}
+
+.option {
+  display: block;
+  margin: 7px 0;
+  font-size: 1em;
+  cursor: pointer;
+}
+
+input[type="checkbox"], input[type="radio"] {
+  accent-color: #4f8cff;
+  margin-right: 8px;
+}
+
+input[type="number"] {
+  background: #232526;
+  color: #f3f3f3;
+  border: 1px solid #333;
+  border-radius: 5px;
+  padding: 8px 14px;
+  margin: 4px 0 10px 0;
+  width: 160px;
+  font-size: 1.1em;
+}
+
+input[type="range"] {
+  background: #232526;
+  color: #f3f3f3;
+  border: 1px solid #333;
+  border-radius: 5px;
+  width: 120px;
+}
+
+.max-disabled {
+  background: #232526 !important;
+  color: #888 !important;
+  border-color: #444 !important;
+}
+
+.max-label-disabled {
+  color: #888 !important;
+}
+
+.disabled-option {
+  color: #888 !important;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.disabled-option input {
+  pointer-events: none;
+}
+
+button {
+  background: #4f8cff;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 22px;
+  font-size: 1em;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 18px;
+  transition: background 0.2s;
+}
+
+button:hover {
+  background: #2563eb;
+}
+
+label {
+  user-select: none;
+}
+
+@media (max-width: 600px) {
+  .container {
+    padding: 18px 6vw;
+    max-width: 98vw;
+    min-width: 0;
+  }
+  .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    height: auto;
+    padding: 12px 8px;
+  }
+  .logo {
+    height: 56px;
+    margin-bottom: 8px;
+    margin-right: 0;
+  }
+  .app-title {
+    font-size: 1em;
+    margin-right: 0;
+    margin-bottom: 8px;
+  }
+  .toggle-btn, button {
+    font-size: 1.1em;
+    padding: 14px 18px;
+    border-radius: 8px;
+  }
+  .option {
+    font-size: 1.1em;
+    padding: 8px 0;
+  }
+  input[type="checkbox"], input[type="radio"] {
+    width: 22px;
+    height: 22px;
+    margin-right: 12px;
+  }
 }
