@@ -9,7 +9,7 @@ app.use('/styles', express.static('styles'));
 app.use('/images', express.static('public/images'));
 
 const EQUIPMENT_LIST = [
-  'Dumbbells', 'Barbell', 'Bench', 'Pull-up Bar', 'Kettlebell', 'Resistance Bands', 'Treadmill', 'Stationary Bike', 'Bodyweight Only', 'Smith Machine', 'Cable Machine', 'Leg Press Machine', 'Chest Press Machine', 'Lat Pulldown Machine', 'Seated Row Machine', 'Pec Deck Machine', 'Leg Extension Machine', 'Leg Curl Machine', 'Calf Raise Machine', 'Dip Station', 'Ab Wheel', 'Medicine Ball', 'EZ Curl Bar', 'Trap Bar', 'Power Rack', 'Squat Rack', 'Preacher Curl Bench', 'Incline Bench', 'Decline Bench', 'Flat Bench', 'Roman Chair', 'Hyperextension Bench', 'Stepper', 'Elliptical', 'Rowing Machine', 'Battle Ropes', 'Sled', 'Landmine Attachment', 'Pulling Sled', 'Plyo Box', 'Jump Rope', 'Weighted Vest', 'Ankle Weights', 'Foam Roller', 'Stability Ball', 'Bosu Ball', 'Mini Bands', 'Suspension Trainer', 'Parallettes', 'Push-up Handles', 'Grip Trainer', 'Farmer’s Walk Handles', 'Sissy Squat Machine', 'Glute Ham Developer', 'Reverse Hyper Machine', 'Hack Squat Machine', 'Thigh Abductor Machine', 'Thigh Adductor Machine', 'Hip Thrust Machine', 'Chest Fly Machine', 'Shoulder Press Machine', 'Seated Calf Machine', 'Standing Calf Machine', 'Wrist Roller', 'Weighted Sled', 'T-Bar Row Machine', 'Multi-Station Gym', 'Stepper Machine', 'Air Bike', 'SkiErg', 'Ab Crunch Machine'
+  'Dumbbells', 'Barbell', 'Bench', 'Pull-up Bar', 'Kettlebell', 'Resistance Bands', 'Treadmill', 'Stationary Bike', 'Bodyweight Only', 'Smith Machine', 'Cable Machine', 'Leg Press Machine', 'Chest Press Machine', 'Lat Pulldown Machine', 'Seated Row Machine', 'Pec Deck Machine', 'Leg Extension Machine', 'Leg Curl Machine', 'Calf Raise Machine', 'Dip Station', 'Ab Wheel', 'Medicine Ball', 'EZ Curl Bar', 'Trap Bar', 'Power Rack', 'Squat Rack', 'Preacher Curl Bench', 'Incline Bench', 'Decline Bench', 'Flat Bench', 'Roman Chair', 'Hyperextension Bench', 'Stepper', 'Elliptical', 'Rowing Machine', 'Battle Ropes', 'Sled', 'Landmine Attachment', 'Pulling Sled', 'Plyo Box', 'Jump Rope', 'Weighted Vest', 'Ankle Weights', 'Foam Roller', 'Stability Ball', 'Bosu Ball', 'Mini Bands', 'Suspension Trainer', 'Parallettes', 'Push-up Handles', 'Grip Trainer', 'Farmer’s Walk Handles', 'Sissy Squat Machine', 'Glute Ham Developer', 'Reverse Hyper Machine', 'Hack Squat Machine', 'Thigh Abductor Machine', 'Thigh Adductor Machine', 'Hip Thrust Machine', 'Chest Fly Machine', 'Shoulder Press Machine', 'Seated Calf Machine', 'Standing Calf Machine', 'Wrist Roller', 'T-Bar Row Machine', 'Multi-Station Gym', 'Stepper Machine', 'Air Bike', 'SkiErg'
 ];
 
 const MUSCLE_GROUPS = [
@@ -131,6 +131,14 @@ const EQUIPMENT_CATEGORIES = {
   ]
 };
 
+const BEGINNER_EQUIPMENT = [
+  'Dumbbells', 'Bench', 'Bodyweight Only', 'Resistance Bands', 'Pull-up Bar', 'Stationary Bike', 'Treadmill', 'Kettlebell', 'StepMill', 'Jump Rope', 'Foam Roller', 'Stability Ball', 'Mini Bands', 'Push-up Handles', 'Grip Trainer', 'Medicine Ball', 'Ab Wheel', 'Parallettes', 'Suspension Trainer', 'Roman Chair', 'Hyperextension Bench', 'Stepper', 'Elliptical', 'Rowing Machine', 'Weighted Vest', 'Ankle Weights', 'Bosu Ball'
+];
+
+const BEGINNER_MUSCLES = [
+  'Chest', 'Triceps', 'Biceps', 'Back', 'Quads', 'Hamstrings', 'Calves', 'Glutes', 'Abs', 'Shoulders', 'Forearms', 'Lats', 'Upper Back', 'Traps'
+];
+
 function renderEquipmentCategories(beginnerMode = false) {
   return Object.entries(EQUIPMENT_CATEGORIES).map(([cat, items]) => `
     <div class="equip-category">
@@ -186,11 +194,14 @@ app.get('/', (req, res) => {
             <label class="option"><input type="radio" name="mode" value="bulking"> Bulking (Low reps, high weight)</label>
           </div>
           <div style="margin-bottom:12px;">
-            <label class="option">Max Weight (lbs): <input type="number" name="max_weight" min="0" step="1"></label>
-            <label class="option"><input type="checkbox" id="noMax" name="no_max"> I don't know my max</label>
+            <label class="option">Bench Press Max (lbs): <input type="number" name="bench_max" min="0" step="1"></label>
+            <label class="option">Squat Max (lbs): <input type="number" name="squat_max" min="0" step="1"></label>
+            <label class="option">Deadlift Max (lbs): <input type="number" name="deadlift_max" min="0" step="1"></label>
+            <label class="option"><input type="checkbox" id="noMax" name="no_max"> I don't know my maxes</label>
           </div>
           <div style="margin-bottom:12px;">
-            <label class="option">Workout Duration (minutes): <input type="number" name="duration" min="10" max="180" step="5" value="60"></label>
+            <label class="option">Height (in): <input type="number" name="height" min="36" max="96" step="1"></label>
+            <label class="option">Weight (lbs): <input type="number" name="weight" min="50" max="600" step="1"></label>
           </div>
           <button type="submit" class="button">Build My Plan</button>
         </form>
@@ -399,16 +410,16 @@ app.get('/dashboard', (req, res) => {
         <div style="margin-bottom:18px;">
           <strong>Maxes:</strong>
           <ul>
-            <li>Deadlift: ${deadliftMax} lbs</li>
             <li>Bench Press: ${benchMax} lbs</li>
             <li>Squat: ${squatMax} lbs</li>
+            <li>Deadlift: ${deadliftMax} lbs</li>
           </ul>
         </div>
         <div style="margin-bottom:18px;">
-          <strong>Stats:</strong>
+          <strong>Profile:</strong>
           <ul>
-            <li>Weight: ${userWeight} lbs</li>
             <li>Height: ${userHeight} in</li>
+            <li>Weight: ${userWeight} lbs</li>
           </ul>
         </div>
         <div style="margin-bottom:18px;">
