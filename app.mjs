@@ -9,7 +9,7 @@ app.use('/styles', express.static('styles'));
 app.use('/images', express.static('public/images'));
 
 const EQUIPMENT_LIST = [
-  'Dumbbells', 'Barbell', 'Bench', 'Pull-up Bar', 'Kettlebell', 'Resistance Bands', 'Treadmill', 'Stationary Bike', 'Bodyweight Only', 'Smith Machine', 'Cable Machine', 'Leg Press Machine', 'Chest Press Machine', 'Lat Pulldown Machine', 'Seated Row Machine', 'Pec Deck Machine', 'Leg Extension Machine', 'Leg Curl Machine', 'Calf Raise Machine', 'Dip Station', 'Ab Wheel', 'Medicine Ball', 'EZ Curl Bar', 'Trap Bar', 'Power Rack', 'Squat Rack', 'Preacher Curl Bench', 'Incline Bench', 'Decline Bench', 'Flat Bench', 'Roman Chair', 'Hyperextension Bench', 'Stepper', 'Elliptical', 'Rowing Machine', 'Battle Ropes', 'Sled', 'Landmine Attachment', 'Pulling Sled', 'Plyo Box', 'Jump Rope', 'Weighted Vest', 'Ankle Weights', 'Foam Roller', 'Stability Ball', 'Bosu Ball', 'Mini Bands', 'Suspension Trainer', 'Parallettes', 'Push-up Handles', 'Grip Trainer', 'Farmer’s Walk Handles', 'Sissy Squat Machine', 'Glute Ham Developer', 'Reverse Hyper Machine', 'Hack Squat Machine', 'Thigh Abductor Machine', 'Thigh Adductor Machine', 'Hip Thrust Machine', 'Chest Fly Machine', 'Shoulder Press Machine', 'Seated Calf Machine', 'Standing Calf Machine', 'Wrist Roller', 'T-Bar Row Machine', 'Multi-Station Gym', 'Stepper Machine', 'Air Bike', 'SkiErg', 'Ab Crunch Machine'
+  'Dumbbells', 'Barbell', 'Bench', 'Pull-up Bar', 'Kettlebell', 'Resistance Bands', 'Treadmill', 'Stationary Bike', 'Bodyweight Only', 'Smith Machine', 'Cable Machine', 'Leg Press Machine', 'Chest Press Machine', 'Lat Pulldown Machine', 'Seated Row Machine', 'Pec Deck Machine', 'Leg Extension Machine', 'Leg Curl Machine', 'Calf Raise Machine', 'Dip Station', 'Ab Wheel', 'Medicine Ball', 'EZ Curl Bar', 'Trap Bar', 'Power Rack', 'Squat Rack', 'Preacher Curl Bench', 'Incline Bench', 'Decline Bench', 'Flat Bench', 'Roman Chair', 'Hyperextension Bench', 'Stepper', 'Elliptical', 'Rowing Machine', 'Battle Ropes', 'Sled', 'Landmine Attachment', 'Pulling Sled', 'Plyo Box', 'Jump Rope', 'Weighted Vest', 'Ankle Weights', 'Foam Roller', 'Stability Ball', 'Bosu Ball', 'Mini Bands', 'Suspension Trainer', 'Parallettes', 'Push-up Handles', 'Grip Trainer', 'Farmer’s Walk Handles', 'Sissy Squat Machine', 'Glute Ham Developer', 'Reverse Hyper Machine', 'Hack Squat Machine', 'Thigh Abductor Machine', 'Thigh Adductor Machine', 'Hip Thrust Machine', 'Chest Fly Machine', 'Shoulder Press Machine', 'Seated Calf Machine', 'Standing Calf Machine', 'Wrist Roller', 'Weighted Sled', 'T-Bar Row Machine', 'Multi-Station Gym', 'Stepper Machine', 'Air Bike', 'SkiErg', 'Ab Crunch Machine'
 ];
 
 const MUSCLE_GROUPS = [
@@ -270,6 +270,16 @@ app.post('/plan', (req, res) => {
 
   // Use imported helper
   // getRecommendedWeight(ex) is imported from helpers.js
+
+  function getRecommendedWeight(ex, benchMax, squatMax, deadliftMax, percent, noMax) {
+    // Simple logic: use percent of max for main lifts, else N/A
+    if (noMax) return 'N/A';
+    const name = ex.name.toLowerCase();
+    if (name.includes('bench')) return benchMax ? Math.round(benchMax * percent / 100) + ' lbs' : 'N/A';
+    if (name.includes('squat')) return squatMax ? Math.round(squatMax * percent / 100) + ' lbs' : 'N/A';
+    if (name.includes('deadlift')) return deadliftMax ? Math.round(deadliftMax * percent / 100) + ' lbs' : 'N/A';
+    return 'Bodyweight or moderate';
+  }
 
   let filteredEquipment = selected;
   let filteredMuscles = selectedMuscles;
