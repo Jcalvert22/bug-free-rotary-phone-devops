@@ -163,6 +163,35 @@ label {
   user-select: none;
 }
 
+.plan-table {
+  width: 100%;
+  min-width: 1100px;
+  border-collapse: collapse;
+  margin: 24px auto;
+  background: rgba(35,37,38,0.92);
+  box-shadow: 0 4px 24px #000a;
+}
+.plan-table th, .plan-table td {
+  padding: 14px 18px;
+  border: 1px solid #333;
+  text-align: left;
+  font-size: 1em;
+}
+.plan-table th {
+  background: #232526;
+  color: #4f8cff;
+  font-weight: 700;
+}
+.plan-table td {
+  background: #181a1b;
+  color: #f3f3f3;
+}
+@media (max-width: 900px) {
+  .plan-table {
+    min-width: 700px;
+  }
+}
+
 @media (max-width: 600px) {
   .container {
     padding: 18px 6vw;

@@ -211,6 +211,10 @@ app.get('/', (req, res) => {
         const section = document.getElementById(id);
         section.style.display = section.style.display === 'none' ? 'block' : 'none';
       }
+      function toggleDesc(id) {
+        const desc = document.getElementById(id);
+        desc.style.display = desc.style.display === 'none' ? 'block' : 'none';
+      }
       // Beginner mode dynamic disabling
       const BEGINNER_EQUIPMENT = [
         'Dumbbells', 'Bench', 'Bodyweight Only', 'Resistance Bands', 'Pull-up Bar', 'Stationary Bike', 'Treadmill', 'Kettlebell', 'StepMill', 'Jump Rope', 'Foam Roller', 'Stability Ball', 'Mini Bands', 'Push-up Handles', 'Grip Trainer', 'Medicine Ball', 'Ab Wheel', 'Parallettes', 'Suspension Trainer', 'Roman Chair', 'Hyperextension Bench', 'Stepper', 'Elliptical', 'Rowing Machine', 'Weighted Vest', 'Ankle Weights', 'Bosu Ball'
@@ -314,7 +318,8 @@ app.post('/plan', (req, res) => {
 
   const planTable = plan.length
     ? `
-      <table class="plan-table">
+      <div style="overflow-x:auto;width:100%;">
+      <table class="plan-table" style="width:100%;min-width:1100px;margin:auto;">
         <thead>
           <tr>
             <th>Exercise</th>
@@ -322,19 +327,22 @@ app.post('/plan', (req, res) => {
             <th>Muscle Group</th>
             <th>Rep Range</th>
             <th>Recommended Weight</th>
-            <th>How To</th>
+            <th>Description</th>
             <th>Demo</th>
           </tr>
         </thead>
         <tbody>
-          ${plan.map(ex => `
+          ${plan.map((ex, idx) => `
             <tr>
               <td>${ex.name}</td>
               <td>${ex.equipment.join(', ')}</td>
               <td>${ex.muscle_group}</td>
               <td>${repRange}</td>
               <td>${getRecommendedWeight(ex, benchMax, squatMax, deadliftMax, percent, noMax)}</td>
-              <td style="max-width:200px">${ex.howto}</td>
+              <td>
+                <button type="button" onclick="document.getElementById('desc${idx}').style.display = document.getElementById('desc${idx}').style.display === 'none' ? 'block' : 'none';">Show Description</button>
+                <div id="desc${idx}" style="display:none;max-width:320px;margin-top:6px;">${ex.howto}</div>
+              </td>
               <td>
                 ${ex.video ? `<iframe width="160" height="90" src="${ex.video}" title="${ex.name} demo" frameborder="0" allowfullscreen style="border-radius:6px;"></iframe>` : ''}
               </td>
@@ -342,6 +350,7 @@ app.post('/plan', (req, res) => {
           `).join('')}
         </tbody>
       </table>
+      </div>
     `
     : '<p>No workouts available for selected equipment and muscle group.</p>';
 
