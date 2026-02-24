@@ -1,163 +1,103 @@
 import express from 'express';
-import path from 'path';
-import fs from 'fs';
 
 const app = express();
+const PORT = process.env.PORT || 3000;
 
 app.use(express.urlencoded({ extended: true }));
 app.use('/styles', express.static('styles'));
 app.use('/images', express.static('public/images'));
 
-const EQUIPMENT_LIST = [
-  'Dumbbells', 'Barbell', 'Bench', 'Pull-up Bar', 'Kettlebell', 'Resistance Bands', 'Treadmill', 'Stationary Bike', 'Bodyweight Only', 'Smith Machine', 'Cable Machine', 'Leg Press Machine', 'Chest Press Machine', 'Lat Pulldown Machine', 'Seated Row Machine', 'Pec Deck Machine', 'Leg Extension Machine', 'Leg Curl Machine', 'Calf Raise Machine', 'Dip Station', 'Ab Wheel', 'Medicine Ball', 'EZ Curl Bar', 'Trap Bar', 'Power Rack', 'Squat Rack', 'Preacher Curl Bench', 'Incline Bench', 'Decline Bench', 'Flat Bench', 'Roman Chair', 'Hyperextension Bench', 'Stepper', 'Elliptical', 'Rowing Machine', 'Battle Ropes', 'Sled', 'Landmine Attachment', 'Pulling Sled', 'Plyo Box', 'Jump Rope', 'Weighted Vest', 'Ankle Weights', 'Foam Roller', 'Stability Ball', 'Bosu Ball', 'Mini Bands', 'Suspension Trainer', 'Parallettes', 'Push-up Handles', 'Grip Trainer', 'Farmer’s Walk Handles', 'Sissy Squat Machine', 'Glute Ham Developer', 'Reverse Hyper Machine', 'Hack Squat Machine', 'Thigh Abductor Machine', 'Thigh Adductor Machine', 'Hip Thrust Machine', 'Chest Fly Machine', 'Shoulder Press Machine', 'Seated Calf Machine', 'Standing Calf Machine', 'Wrist Roller', 'T-Bar Row Machine', 'Multi-Station Gym', 'Stepper Machine', 'Air Bike', 'SkiErg'
+const MUSCLE_GROUPS = [
+  'Upper Chest', 'Chest', 'Shoulders', 'Arms', 'Back', 'Abs', 'Legs'
 ];
 
-const MUSCLE_GROUPS = [
-  'Chest', 'Upper Chest', 'Lower Chest', 'Triceps', 'Biceps', 'Forearms', 'Back', 'Upper Back', 'Lower Back', 'Lats', 'Traps', 'Quads', 'Hamstrings', 'Calves', 'Glutes', 'Hip Flexors', 'Adductors', 'Abductors', 'Abs', 'Obliques', 'Serratus Anterior', 'Front Delt', 'Side Delt', 'Rear Delt', 'Shoulders', 'Neck'
+const EQUIPMENT_LIST = [
+  // Chest
+  'Bench', 'Pec Deck', 'Dumbbells', 'Cables',
+  // Back
+  'Lat Pulldown', 'Seated Row',
+  // Shoulders
+  'Shoulder Press',
+  // Arms
+  'Preacher Curl',
+  // Legs
+  'Squat Rack', 'Leg Extension', 'Hamstring Curl',
+  // Cardio
+  'Treadmill', 'Stair Stepper', 'Cardio Bike'
 ];
 
 const EXERCISES = [
+  // Upper Chest
+  { name: "Incline Dumbbell Press", equipment: ["Bench", "Dumbbells"], muscle_group: "Upper Chest", howto: "Lie on an incline bench and press dumbbells upward.", video: "" },
+  { name: "Incline Push-up", equipment: ["Bench"], muscle_group: "Upper Chest", howto: "Place hands on bench, feet on floor, and perform push-ups.", video: "" },
+
   // Chest
-  { name: "Push-up", equipment: ["Bodyweight"], muscle_group: "Chest", howto: "Start in a plank position with hands under shoulders. Lower your body until your chest nearly touches the floor, then push back up.", video: "" },
-  { name: "Incline Push-up", equipment: ["Bodyweight", "Incline Bench"], muscle_group: "Upper Chest", howto: "Place your hands on an elevated surface. Lower your chest to the bench, then push back up.", video: "" },
-  { name: "Decline Push-up", equipment: ["Bodyweight", "Decline Bench"], muscle_group: "Lower Chest", howto: "Place your feet on an elevated surface. Lower your chest to the floor, then push back up.", video: "" },
-  { name: "Bench Press", equipment: ["Barbell", "Bench", "Dumbbells", "Smith Machine", "Chest Press Machine"], muscle_group: "Chest", howto: "Lie on a bench, grip bar wider than shoulders. Lower bar to chest, then press up.", video: "" },
-  { name: "Incline Bench Press", equipment: ["Barbell", "Incline Bench", "Dumbbells", "Smith Machine", "Chest Press Machine"], muscle_group: "Upper Chest", howto: "Lie on an incline bench, grip bar wider than shoulders. Lower bar to upper chest, then press up.", video: "" },
-  { name: "Decline Bench Press", equipment: ["Barbell", "Decline Bench", "Dumbbells", "Smith Machine"], muscle_group: "Lower Chest", howto: "Lie on a decline bench, grip bar wider than shoulders. Lower bar to lower chest, then press up.", video: "" },
-  { name: "Chest Fly", equipment: ["Dumbbells", "Bench", "Cable Machine", "Pec Deck Machine", "Chest Fly Machine"], muscle_group: "Chest", howto: "With arms slightly bent, bring weights or handles together in a wide arc, then return.", video: "" },
-  { name: "Pec Deck Fly", equipment: ["Pec Deck Machine"], muscle_group: "Chest", howto: "Sit at the machine, bring arms together in front of chest, then return.", video: "" },
-  { name: "Push-up Handles Push-up", equipment: ["Push-up Handles", "Bodyweight"], muscle_group: "Chest", howto: "Use handles for deeper range of motion in a standard push-up.", video: "" },
-
-  // Triceps
-  { name: "Triceps Dip", equipment: ["Bodyweight", "Dip Station", "Bench"], muscle_group: "Triceps", howto: "Lower your body by bending elbows, then press back up.", video: "" },
-  { name: "Triceps Pushdown", equipment: ["Cable Machine"], muscle_group: "Triceps", howto: "Push bar or rope down, keeping elbows at sides.", video: "" },
-  { name: "Overhead Triceps Extension", equipment: ["Dumbbells", "Cable Machine", "EZ Curl Bar"], muscle_group: "Triceps", howto: "Extend weight overhead, then lower behind head and press up.", video: "" },
-  { name: "Skullcrusher", equipment: ["EZ Curl Bar", "Barbell", "Dumbbells", "Bench"], muscle_group: "Triceps", howto: "Lower bar to forehead, then extend arms.", video: "" },
-
-  // Biceps
-  { name: "Bicep Curl", equipment: ["Dumbbells", "Barbell", "EZ Curl Bar", "Cable Machine", "Resistance Bands"], muscle_group: "Biceps", howto: "Curl weights up while keeping elbows close, then lower slowly.", video: "" },
-  { name: "Hammer Curl", equipment: ["Dumbbells"], muscle_group: "Biceps", howto: "Curl with palms facing each other.", video: "" },
-  { name: "Preacher Curl", equipment: ["EZ Curl Bar", "Preacher Curl Bench", "Dumbbells"], muscle_group: "Biceps", howto: "Curl weight on preacher bench, then lower.", video: "" },
-  { name: "Concentration Curl", equipment: ["Dumbbells"], muscle_group: "Biceps", howto: "Curl dumbbell while seated, elbow on thigh.", video: "" },
-  { name: "Cable Curl", equipment: ["Cable Machine"], muscle_group: "Biceps", howto: "Curl cable attachment toward shoulders.", video: "" },
-
-  // Forearms
-  { name: "Wrist Curl", equipment: ["Dumbbells", "Barbell", "EZ Curl Bar"], muscle_group: "Forearms", howto: "Curl wrists upward, then lower.", video: "" },
-  { name: "Reverse Wrist Curl", equipment: ["Dumbbells", "Barbell", "EZ Curl Bar"], muscle_group: "Forearms", howto: "Curl wrists upward with palms down.", video: "" },
-  { name: "Farmer’s Walk", equipment: ["Dumbbells", "Farmer’s Walk Handles", "Kettlebell"], muscle_group: "Forearms", howto: "Walk while holding heavy weights at sides.", video: "" },
-  { name: "Wrist Roller", equipment: ["Wrist Roller"], muscle_group: "Forearms", howto: "Roll weight up and down using wrists.", video: "" },
-  { name: "Grip Trainer Squeeze", equipment: ["Grip Trainer"], muscle_group: "Forearms", howto: "Squeeze grip trainer for repetitions.", video: "" },
+  { name: "Push-up", equipment: ["Bench", "Dumbbells"], muscle_group: "Chest", howto: "Start in a plank position and lower your body until your chest nearly touches the floor, then push back up.", video: "" },
+  { name: "Bench Press", equipment: ["Bench", "Dumbbells"], muscle_group: "Chest", howto: "Lie on a bench, grip dumbbells. Lower to chest, then press up.", video: "" },
+  { name: "Pec Deck Fly", equipment: ["Pec Deck"], muscle_group: "Chest", howto: "Sit at the machine, bring arms together in front of chest, then return.", video: "" },
+  { name: "Cable Chest Fly", equipment: ["Cables"], muscle_group: "Chest", howto: "With arms slightly bent, bring handles together in a wide arc, then return.", video: "" },
 
   // Shoulders
-  { name: "Overhead Press", equipment: ["Barbell", "Dumbbells", "Smith Machine", "Shoulder Press Machine"], muscle_group: "Shoulders", howto: "Press weight overhead, then lower.", video: "" },
-  { name: "Front Raise", equipment: ["Dumbbells", "Cable Machine", "Resistance Bands"], muscle_group: "Front Delt", howto: "Raise weights in front to shoulder height.", video: "" },
-  { name: "Lateral Raise", equipment: ["Dumbbells", "Cable Machine", "Resistance Bands"], muscle_group: "Side Delt", howto: "Raise weights to sides to shoulder height.", video: "" },
-  { name: "Rear Delt Fly", equipment: ["Dumbbells", "Cable Machine", "Pec Deck Machine"], muscle_group: "Rear Delt", howto: "Bend forward, raise arms out to sides.", video: "" },
-  { name: "Arnold Press", equipment: ["Dumbbells"], muscle_group: "Shoulders", howto: "Rotate palms during overhead press.", video: "" },
-  { name: "Upright Row", equipment: ["Barbell", "Dumbbells", "EZ Curl Bar", "Cable Machine"], muscle_group: "Traps", howto: "Pull weight up to chest, elbows high.", video: "" },
-  { name: "Shrug", equipment: ["Dumbbells", "Barbell", "Smith Machine"], muscle_group: "Traps", howto: "Shrug shoulders up toward ears, then lower.", video: "" },
-  { name: "Face Pull", equipment: ["Cable Machine", "Resistance Bands"], muscle_group: "Rear Delt", howto: "Pull rope toward face, elbows high.", video: "" },
+  { name: "Shoulder Press", equipment: ["Shoulder Press", "Dumbbells"], muscle_group: "Shoulders", howto: "Press weight overhead, then lower.", video: "" },
+  { name: "Lateral Raise", equipment: ["Dumbbells", "Cables"], muscle_group: "Shoulders", howto: "Raise weights to sides to shoulder height.", video: "" },
+  { name: "Front Raise", equipment: ["Dumbbells", "Cables"], muscle_group: "Shoulders", howto: "Raise weights in front to shoulder height.", video: "" },
+
+  // Arms
+  { name: "Bicep Curl", equipment: ["Dumbbells", "Preacher Curl", "Cables"], muscle_group: "Arms", howto: "Curl weights up while keeping elbows close, then lower slowly.", video: "" },
+  { name: "Triceps Pushdown", equipment: ["Cables"], muscle_group: "Arms", howto: "Push bar or rope down, keeping elbows at sides.", video: "" },
+  { name: "Hammer Curl", equipment: ["Dumbbells"], muscle_group: "Arms", howto: "Curl dumbbells with palms facing each other.", video: "" },
+  { name: "Overhead Triceps Extension", equipment: ["Dumbbells"], muscle_group: "Arms", howto: "Extend dumbbell overhead, then lower behind head and press up.", video: "" },
 
   // Back
-  { name: "Pull-up", equipment: ["Pull-up Bar", "Assisted Pull-up Machine"], muscle_group: "Back", howto: "Pull chin above bar, then lower.", video: "" },
-  { name: "Chin-up", equipment: ["Pull-up Bar"], muscle_group: "Back", howto: "Pull chin above bar with underhand grip.", video: "" },
-  { name: "Lat Pulldown", equipment: ["Lat Pulldown Machine", "Cable Machine"], muscle_group: "Lats", howto: "Pull bar to chest, then release.", video: "" },
-  { name: "Seated Row", equipment: ["Seated Row Machine", "Cable Machine"], muscle_group: "Back", howto: "Pull handles to torso, then release.", video: "" },
-  { name: "Bent Over Row", equipment: ["Barbell", "Dumbbells", "Smith Machine", "T-Bar Row Machine"], muscle_group: "Back", howto: "Row weight to waist, then lower.", video: "" },
-  { name: "T-Bar Row", equipment: ["T-Bar Row Machine", "Barbell"], muscle_group: "Back", howto: "Row bar to chest, then lower.", video: "" },
-  { name: "Single Arm Row", equipment: ["Dumbbells", "Cable Machine"], muscle_group: "Back", howto: "Row dumbbell to hip, then lower.", video: "" },
-  { name: "Deadlift", equipment: ["Barbell", "Dumbbells", "Trap Bar", "Smith Machine"], muscle_group: "Lower Back", howto: "Lift bar from floor by straightening hips and knees.", video: "" },
-  { name: "Good Morning", equipment: ["Barbell", "Smith Machine"], muscle_group: "Lower Back", howto: "Hinge at hips with bar on back, then return.", video: "" },
-  { name: "Hyperextension", equipment: ["Hyperextension Bench", "Roman Chair"], muscle_group: "Lower Back", howto: "Extend torso upward, then lower.", video: "" },
-  { name: "Reverse Hyper", equipment: ["Reverse Hyper Machine"], muscle_group: "Lower Back", howto: "Lift legs behind you while lying face down.", video: "" },
+  { name: "Lat Pulldown", equipment: ["Lat Pulldown", "Cables"], muscle_group: "Back", howto: "Pull bar to chest, then release.", video: "" },
+  { name: "Seated Row", equipment: ["Cables"], muscle_group: "Back", howto: "Pull handles to torso, then release.", video: "" },
+  { name: "Dumbbell Row", equipment: ["Bench", "Dumbbells"], muscle_group: "Back", howto: "Place one knee and hand on bench, row dumbbell to hip.", video: "" },
 
-  // Abs & Core
-  { name: "Crunch", equipment: ["Bodyweight", "Ab Crunch Machine"], muscle_group: "Abs", howto: "Curl shoulders toward hips, then lower.", video: "" },
-  { name: "Sit-up", equipment: ["Bodyweight"], muscle_group: "Abs", howto: "Sit up from lying position, then lower.", video: "" },
-  { name: "Hanging Leg Raise", equipment: ["Pull-up Bar"], muscle_group: "Abs", howto: "Raise legs while hanging, then lower.", video: "" },
-  { name: "Plank", equipment: ["Bodyweight"], muscle_group: "Abs", howto: "Hold body straight on elbows and toes.", video: "" },
-  { name: "Russian Twist", equipment: ["Medicine Ball", "Bodyweight"], muscle_group: "Obliques", howto: "Twist torso side to side while seated.", video: "" },
-  { name: "Cable Woodchopper", equipment: ["Cable Machine"], muscle_group: "Obliques", howto: "Pull cable diagonally across body.", video: "" },
-  { name: "Ab Wheel Rollout", equipment: ["Ab Wheel"], muscle_group: "Abs", howto: "Roll wheel forward and back from knees or toes.", video: "" },
-  { name: "Decline Sit-up", equipment: ["Decline Bench"], muscle_group: "Abs", howto: "Sit up from decline position, then lower.", video: "" },
-  { name: "Side Plank", equipment: ["Bodyweight"], muscle_group: "Obliques", howto: "Hold body straight on one elbow and side of foot.", video: "" },
+  // Abs
+  { name: "Crunch", equipment: ["Bench"], muscle_group: "Abs", howto: "Curl shoulders toward hips, then lower.", video: "" },
+  { name: "Plank", equipment: ["Bench"], muscle_group: "Abs", howto: "Hold body straight on elbows and toes.", video: "" },
+  { name: "Leg Raise", equipment: ["Bench"], muscle_group: "Abs", howto: "Lie on bench, raise legs upward, then lower.", video: "" },
 
-  // Glutes & Hips
-  { name: "Hip Thrust", equipment: ["Barbell", "Bench", "Hip Thrust Machine"], muscle_group: "Glutes", howto: "Thrust hips upward with weight on hips.", video: "" },
-  { name: "Glute Bridge", equipment: ["Bodyweight", "Barbell"], muscle_group: "Glutes", howto: "Bridge hips upward from floor.", video: "" },
-  { name: "Cable Kickback", equipment: ["Cable Machine"], muscle_group: "Glutes", howto: "Kick leg back with cable attached to ankle.", video: "" },
-  { name: "Abductor Machine", equipment: ["Abductors", "Thigh Abductor Machine"], muscle_group: "Abductors", howto: "Push legs outward against pads.", video: "" },
-  { name: "Adductor Machine", equipment: ["Adductors", "Thigh Adductor Machine"], muscle_group: "Adductors", howto: "Squeeze legs inward against pads.", video: "" },
-  { name: "Step-up", equipment: ["Bench", "Plyo Box"], muscle_group: "Glutes", howto: "Step onto box, drive through heel.", video: "" },
-  { name: "Bulgarian Split Squat", equipment: ["Dumbbells", "Bench"], muscle_group: "Glutes", howto: "Rear foot on bench, squat with front leg.", video: "" },
+  // Legs
+  { name: "Squat", equipment: ["Squat Rack", "Dumbbells"], muscle_group: "Legs", howto: "Lower hips back and down, then stand up.", video: "" },
+  { name: "Leg Extension", equipment: ["Leg Extension"], muscle_group: "Legs", howto: "Extend knees to lift pad.", video: "" },
+  { name: "Hamstring Curl", equipment: ["Hamstring Curl"], muscle_group: "Legs", howto: "Curl heels toward glutes.", video: "" },
+  { name: "Calf Raise", equipment: ["Bench", "Dumbbells"], muscle_group: "Legs", howto: "Stand on edge of bench, raise heels, then lower.", video: "" },
 
-  // Quads
-  { name: "Squat", equipment: ["Barbell", "Dumbbells", "Smith Machine", "Bodyweight", "Squat Rack", "Power Rack"], muscle_group: "Quads", howto: "Lower hips back and down, then stand up.", video: "" },
-  { name: "Front Squat", equipment: ["Barbell", "Smith Machine"], muscle_group: "Quads", howto: "Barbell rests on front shoulders, squat down and up.", video: "" },
-  { name: "Leg Press", equipment: ["Leg Press Machine"], muscle_group: "Quads", howto: "Press platform away with feet.", video: "" },
-  { name: "Leg Extension", equipment: ["Leg Extension Machine"], muscle_group: "Quads", howto: "Extend knees to lift pad.", video: "" },
-  { name: "Sissy Squat", equipment: ["Sissy Squat Machine"], muscle_group: "Quads", howto: "Lean back and squat, keeping hips forward.", video: "" },
-
-  // Hamstrings
-  { name: "Leg Curl", equipment: ["Leg Curl Machine", "Resistance Bands"], muscle_group: "Hamstrings", howto: "Curl heels toward glutes.", video: "" },
-  { name: "Romanian Deadlift", equipment: ["Barbell", "Dumbbells", "Smith Machine"], muscle_group: "Hamstrings", howto: "Hinge at hips, lower weight, then return.", video: "" },
-  { name: "Glute Ham Raise", equipment: ["Glute Ham Developer"], muscle_group: "Hamstrings", howto: "Lower torso, then curl up using hamstrings.", video: "" },
-
-  // Calves
-  { name: "Standing Calf Raise", equipment: ["Bodyweight", "Dumbbells", "Barbell", "Standing Calf Machine"], muscle_group: "Calves", howto: "Raise heels off ground, then lower.", video: "" },
-  { name: "Seated Calf Raise", equipment: ["Seated Calf Machine"], muscle_group: "Calves", howto: "Raise heels while seated, then lower.", video: "" },
-  { name: "Donkey Calf Raise", equipment: ["Bodyweight", "Donkey Calf Machine"], muscle_group: "Calves", howto: "Bend at waist, raise heels, then lower.", video: "" },
-
-  // Cardio/Full Body/Other
-  { name: "Jump Rope", equipment: ["Jump Rope"], muscle_group: "Calves", howto: "Jump over rope repeatedly.", video: "" },
-  { name: "Rowing", equipment: ["Rowing Machine"], muscle_group: "Back", howto: "Row handle toward chest, then extend.", video: "" },
-  { name: "Battle Ropes", equipment: ["Battle Ropes"], muscle_group: "Shoulders", howto: "Wave ropes up and down.", video: "" },
-  { name: "Sled Push", equipment: ["Sled", "Weighted Sled"], muscle_group: "Quads", howto: "Push sled forward using legs.", video: "" },
-  { name: "Farmer’s Walk", equipment: ["Dumbbells", "Farmer’s Walk Handles", "Kettlebell"], muscle_group: "Forearms", howto: "Walk while holding heavy weights at sides.", video: "" },
-  { name: "StepMill", equipment: ["Stepper", "Stepper Machine"], muscle_group: "Glutes", howto: "Climb rotating stairs.", video: "" },
-  { name: "Air Bike Sprint", equipment: ["Air Bike"], muscle_group: "Full Body", howto: "Pedal and push/pull handles as fast as possible.", video: "" },
-  { name: "SkiErg Pull", equipment: ["SkiErg"], muscle_group: "Back", howto: "Pull handles down in a skiing motion.", video: "" }
+  // Cardio
+  { name: "Treadmill Walk", equipment: ["Treadmill"], muscle_group: "Legs", howto: "Walk at a steady pace.", video: "" },
+  { name: "Stair Stepper", equipment: ["Stair Stepper"], muscle_group: "Legs", howto: "Climb rotating stairs.", video: "" },
+  { name: "Bike Ride", equipment: ["Cardio Bike"], muscle_group: "Legs", howto: "Pedal at a steady pace.", video: "" }
 ];
-
-const EQUIPMENT_CATEGORIES = {
-  'Strength Machines': [
-    'Dumbbells', 'Barbell', 'Bench', 'Smith Machine', 'Cable Machine', 'Leg Press Machine', 'Chest Press Machine', 'Lat Pulldown Machine', 'Seated Row Machine', 'Pec Deck Machine', 'Leg Extension Machine', 'Leg Curl Machine', 'Calf Raise Machine', 'Dip Station', 'EZ Curl Bar', 'Trap Bar', 'Power Rack', 'Squat Rack', 'Preacher Curl Bench', 'Incline Bench', 'Decline Bench', 'Flat Bench', 'Roman Chair', 'Hyperextension Bench', 'Sissy Squat Machine', 'Glute Ham Developer', 'Reverse Hyper Machine', 'Hack Squat Machine', 'Thigh Abductor Machine', 'Thigh Adductor Machine', 'Hip Thrust Machine', 'Chest Fly Machine', 'Shoulder Press Machine', 'Seated Calf Machine', 'Standing Calf Machine', 'Wrist Roller', 'T-Bar Row Machine', 'Multi-Station Gym', 'Ab Crunch Machine'
-  ],
-  'Cardio Machines': [
-    'Treadmill', 'Stationary Bike', 'Stepper', 'Elliptical', 'Rowing Machine', 'Stepper Machine', 'Air Bike', 'SkiErg'
-  ],
-  'Functional/Crossfit Equipment': [
-    'Kettlebell', 'Resistance Bands', 'Bodyweight Only', 'Ab Wheel', 'Medicine Ball', 'Landmine Attachment', 'Pulling Sled', 'Plyo Box', 'Jump Rope', 'Weighted Vest', 'Ankle Weights', 'Foam Roller', 'Stability Ball', 'Bosu Ball', 'Mini Bands', 'Suspension Trainer', 'Parallettes', 'Push-up Handles', 'Grip Trainer', 'Farmer’s Walk Handles', 'Weighted Sled', 'Battle Ropes', 'Sled'
-  ]
-};
 
 const BEGINNER_EQUIPMENT = [
   'Dumbbells', 'Bench', 'Bodyweight Only', 'Resistance Bands', 'Pull-up Bar', 'Stationary Bike', 'Treadmill', 'Kettlebell', 'StepMill', 'Jump Rope', 'Foam Roller', 'Stability Ball', 'Mini Bands', 'Push-up Handles', 'Grip Trainer', 'Medicine Ball', 'Ab Wheel', 'Parallettes', 'Suspension Trainer', 'Roman Chair', 'Hyperextension Bench', 'Stepper', 'Elliptical', 'Rowing Machine', 'Weighted Vest', 'Ankle Weights', 'Bosu Ball'
 ];
-
 const BEGINNER_MUSCLES = [
-  'Chest', 'Triceps', 'Biceps', 'Back', 'Quads', 'Hamstrings', 'Calves', 'Glutes', 'Abs', 'Shoulders', 'Forearms', 'Lats', 'Upper Back', 'Traps'
+  'Upper Chest', 'Chest', 'Shoulders', 'Arms', 'Back', 'Abs', 'Legs'
 ];
 
-function renderEquipmentCategories(beginnerMode = false) {
-  return Object.entries(EQUIPMENT_CATEGORIES).map(([cat, items]) => `
-    <div class="equip-category">
-      <button type="button" onclick="toggleSection('${cat.replace(/\s+/g,'-')}-section')" class="toggle-btn">${cat}</button>
-      <div id="${cat.replace(/\s+/g,'-')}-section" style="display:none;margin-bottom:12px;">
-        ${items.map(eq => {
-          const isBeginner = !beginnerMode || (typeof BEGINNER_EQUIPMENT !== 'undefined' && BEGINNER_EQUIPMENT.includes(eq));
-          return `<label class="option${isBeginner ? '' : ' disabled-option'} beginner-equip" data-equip="${eq}"><input type="checkbox" name="equipment" value="${eq}"${isBeginner ? '' : ' disabled'}> ${eq}</label>`;
-        }).join('')}
-      </div>
-    </div>
-  `).join('');
+function getRecommendedWeight(exercise, benchMax, squatMax, deadliftMax, percent, noMax) {
+  if (noMax) return 'N/A';
+  const name = exercise.name.toLowerCase();
+  if (name.includes('bench')) return benchMax ? `${Math.round(benchMax * percent / 100)} lbs` : 'N/A';
+  if (name.includes('squat')) return squatMax ? `${Math.round(squatMax * percent / 100)} lbs` : 'N/A';
+  if (name.includes('deadlift')) return deadliftMax ? `${Math.round(deadliftMax * percent / 100)} lbs` : 'N/A';
+  return 'Bodyweight or moderate';
+}
+
+function normalizeSelection(value) {
+  if (!value) return [];
+  return Array.isArray(value) ? value : [value];
 }
 
 app.get('/', (req, res) => {
   const beginnerMode = false; // Always false for GET, unless you want to persist state
-  const equipmentOptions = renderEquipmentCategories(beginnerMode);
+  const equipmentOptions = EQUIPMENT_LIST.map(eq =>
+    `<label class="option" data-equip="${eq}"><input type="checkbox" name="equipment" value="${eq}"> ${eq}</label>`
+  ).join('');
   const muscleOptions = MUSCLE_GROUPS.map(mg =>
-    `<label class="option beginner-muscle" data-muscle="${mg}"><input type="checkbox" name="muscle" value="${mg}"> ${mg}</label>`
+    `<label class="option" data-muscle="${mg}"><input type="checkbox" name="muscle" value="${mg}"> ${mg}</label>`
   ).join('');
   res.send(`
     <html>
@@ -177,11 +117,11 @@ app.get('/', (req, res) => {
       <div class="container">
         <h1>Starter Gym Planner</h1>
         <form method="POST" action="/plan">
-          <div style="margin-bottom:12px;">
-            <label class="option"><input type="checkbox" id="beginnerMode" name="beginner_mode"> Beginner Mode (recommended for new lifters)</label>
-          </div>
           <p style="margin-bottom:8px;">Equipment:</p>
-          ${equipmentOptions}
+          <button type="button" onclick="toggleSection('equip-section')" class="toggle-btn">Show options</button>
+          <div id="equip-section" style="display:none;margin-bottom:12px;">
+            ${equipmentOptions}
+          </div>
           <hr>
           <p style="margin-bottom:8px;">Muscle Groups:</p>
           <button type="button" onclick="toggleSection('muscle-section')" class="toggle-btn">Show options</button>
@@ -189,20 +129,6 @@ app.get('/', (req, res) => {
             ${muscleOptions}
           </div>
           <hr>
-          <div style="margin-bottom:12px;">
-            <label class="option"><input type="radio" name="mode" value="dieting" checked> Dieting (High reps, low weight)</label>
-            <label class="option"><input type="radio" name="mode" value="bulking"> Bulking (Low reps, high weight)</label>
-          </div>
-          <div style="margin-bottom:12px;">
-            <label class="option">Bench Press Max (lbs): <input type="number" name="bench_max" min="0" step="1"></label>
-            <label class="option">Squat Max (lbs): <input type="number" name="squat_max" min="0" step="1"></label>
-            <label class="option">Deadlift Max (lbs): <input type="number" name="deadlift_max" min="0" step="1"></label>
-            <label class="option"><input type="checkbox" id="noMax" name="no_max"> I don't know my maxes</label>
-          </div>
-          <div style="margin-bottom:12px;">
-            <label class="option">Height (in): <input type="number" name="height" min="36" max="96" step="1"></label>
-            <label class="option">Weight (lbs): <input type="number" name="weight" min="50" max="600" step="1"></label>
-          </div>
           <button type="submit" class="button">Build My Plan</button>
         </form>
       </div>
@@ -211,44 +137,6 @@ app.get('/', (req, res) => {
         const section = document.getElementById(id);
         section.style.display = section.style.display === 'none' ? 'block' : 'none';
       }
-      function toggleDesc(id) {
-        const desc = document.getElementById(id);
-        desc.style.display = desc.style.display === 'none' ? 'block' : 'none';
-      }
-      // Beginner mode dynamic disabling
-      const BEGINNER_EQUIPMENT = [
-        'Dumbbells', 'Bench', 'Bodyweight Only', 'Resistance Bands', 'Pull-up Bar', 'Stationary Bike', 'Treadmill', 'Kettlebell', 'StepMill', 'Jump Rope', 'Foam Roller', 'Stability Ball', 'Mini Bands', 'Push-up Handles', 'Grip Trainer', 'Medicine Ball', 'Ab Wheel', 'Parallettes', 'Suspension Trainer', 'Roman Chair', 'Hyperextension Bench', 'Stepper', 'Elliptical', 'Rowing Machine', 'Weighted Vest', 'Ankle Weights', 'Bosu Ball'
-      ];
-      const BEGINNER_MUSCLES = [
-        'Chest', 'Triceps', 'Biceps', 'Back', 'Quads', 'Hamstrings', 'Calves', 'Glutes', 'Abs', 'Shoulders', 'Forearms', 'Lats', 'Upper Back', 'Traps'
-      ];
-      document.addEventListener('DOMContentLoaded', function() {
-        const beginnerCheckbox = document.getElementById('beginnerMode');
-        beginnerCheckbox.addEventListener('change', function() {
-          document.querySelectorAll('.beginner-equip').forEach(label => {
-            const equip = label.getAttribute('data-equip');
-            const input = label.querySelector('input[type="checkbox"]');
-            if (beginnerCheckbox.checked && !BEGINNER_EQUIPMENT.includes(equip)) {
-              label.classList.add('disabled-option');
-              input.disabled = true;
-            } else {
-              label.classList.remove('disabled-option');
-              input.disabled = false;
-            }
-          });
-          document.querySelectorAll('.beginner-muscle').forEach(label => {
-            const muscle = label.getAttribute('data-muscle');
-            const input = label.querySelector('input[type="checkbox"]');
-            if (beginnerCheckbox.checked && !BEGINNER_MUSCLES.includes(muscle)) {
-              label.classList.add('disabled-option');
-              input.disabled = true;
-            } else {
-              label.classList.remove('disabled-option');
-              input.disabled = false;
-            }
-          });
-        });
-      });
       </script>
     </body>
     </html>
@@ -256,8 +144,8 @@ app.get('/', (req, res) => {
 });
 
 app.post('/plan', (req, res) => {
-  let selected = req.body.equipment;
-  let selectedMuscles = req.body.muscle;
+  const selectedEquipment = normalizeSelection(req.body.equipment);
+  const selectedMuscles = normalizeSelection(req.body.muscle);
   let mode = req.body.mode || 'dieting';
   let percent = parseFloat(req.body.percent) || 70;
   const noMax = req.body.no_max === 'on';
@@ -269,34 +157,9 @@ app.post('/plan', (req, res) => {
   let squatMax = noMax ? 0 : parseFloat(req.body.squat_max) || 0;
   let deadliftMax = noMax ? 0 : parseFloat(req.body.deadlift_max) || 0;
 
-  if (!selected) selected = [];
-  if (!Array.isArray(selected)) selected = [selected];
-  if (!selectedMuscles) selectedMuscles = [];
-  if (!Array.isArray(selectedMuscles)) selectedMuscles = [selectedMuscles];
-
-  const equipmentOptions = EQUIPMENT_LIST.map(eq =>
-    `<label class="option beginner-equip" data-equip="${eq}"><input type="checkbox" name="equipment" value="${eq}"${selected.includes(eq) ? ' checked' : ''}> ${eq}</label>`
-  ).join('');
-  const muscleOptions = MUSCLE_GROUPS.map(mg =>
-    `<label class="option beginner-muscle" data-muscle="${mg}"><input type="checkbox" name="muscle" value="${mg}"${selectedMuscles.includes(mg) ? ' checked' : ''}> ${mg}</label>`
-  ).join('');
-
   const repRange = mode === 'bulking' ? '4-8 reps, heavy weight' : '12-20 reps, light/moderate weight';
 
-  // Use imported helper
-  // getRecommendedWeight(ex) is imported from helpers.js
-
-  function getRecommendedWeight(ex, benchMax, squatMax, deadliftMax, percent, noMax) {
-    // Simple logic: use percent of max for main lifts, else N/A
-    if (noMax) return 'N/A';
-    const name = ex.name.toLowerCase();
-    if (name.includes('bench')) return benchMax ? Math.round(benchMax * percent / 100) + ' lbs' : 'N/A';
-    if (name.includes('squat')) return squatMax ? Math.round(squatMax * percent / 100) + ' lbs' : 'N/A';
-    if (name.includes('deadlift')) return deadliftMax ? Math.round(deadliftMax * percent / 100) + ' lbs' : 'N/A';
-    return 'Bodyweight or moderate';
-  }
-
-  let filteredEquipment = selected;
+  let filteredEquipment = selectedEquipment;
   let filteredMuscles = selectedMuscles;
   if (beginnerMode) {
     filteredEquipment = filteredEquipment.filter(eq => BEGINNER_EQUIPMENT.includes(eq));
@@ -332,22 +195,19 @@ app.post('/plan', (req, res) => {
           </tr>
         </thead>
         <tbody>
-          ${plan.map((ex, idx) => `
-            <tr>
-              <td>${ex.name}</td>
-              <td>${ex.equipment.join(', ')}</td>
-              <td>${ex.muscle_group}</td>
-              <td>${repRange}</td>
-              <td>${getRecommendedWeight(ex, benchMax, squatMax, deadliftMax, percent, noMax)}</td>
-              <td>
-                <button type="button" onclick="document.getElementById('desc${idx}').style.display = document.getElementById('desc${idx}').style.display === 'none' ? 'block' : 'none';">Show Description</button>
-                <div id="desc${idx}" style="display:none;max-width:320px;margin-top:6px;">${ex.howto}</div>
-              </td>
-              <td>
-                ${ex.video ? `<iframe width="160" height="90" src="${ex.video}" title="${ex.name} demo" frameborder="0" allowfullscreen style="border-radius:6px;"></iframe>` : ''}
-              </td>
-            </tr>
-          `).join('')}
+          ${plan.map(ex => {
+            return `
+              <tr>
+                <td>${ex.name}</td>
+                <td>${ex.equipment.join(', ')}</td>
+                <td>${ex.muscle_group}</td>
+                <td>${repRange}</td>
+                <td>${getRecommendedWeight(ex, benchMax, squatMax, deadliftMax, percent, noMax)}</td>
+                <td style="max-width:320px;">${ex.howto}</td>
+                <td>${ex.video ? `<iframe width="160" height="90" src="${ex.video}" title="${ex.name} demo" frameborder="0" allowfullscreen style="border-radius:6px;"></iframe>` : ''}</td>
+              </tr>
+            `;
+          }).join('')}
         </tbody>
       </table>
       </div>
@@ -371,7 +231,7 @@ app.post('/plan', (req, res) => {
       </header>
       <div class="container">
         <h1>Your Custom Gym Plan</h1>
-        <p>Based on your equipment, muscle group(s), and goal (${mode === 'bulking' ? 'Bulking' : 'Dieting'}):</p>
+        <p>Based on your equipment, muscle group(s), and goal:</p>
         ${planTable}
         <a href="/" class="button">Back</a>
       </div>
@@ -445,6 +305,6 @@ app.get('/dashboard', (req, res) => {
   `);
 });
 
-app.listen(3000, () => {
-  console.log('Server is running on http://localhost:3000');
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
 });
