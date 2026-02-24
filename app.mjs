@@ -100,56 +100,319 @@ function shuffleArray(list) {
   return array;
 }
 
+const BASE_STYLES = `
+  <style>
+    :root {
+      --accent: #4f8cff;
+      --accent-dark: #325fdc;
+      --bg: #070b1b;
+      --panel: #101632;
+      --panel-light: #161d3f;
+      --text: #f5f7ff;
+      --muted: #aab4dc;
+      --border: rgba(255, 255, 255, 0.08);
+      --success: #3dd598;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', 'Inter', sans-serif;
+      background: radial-gradient(circle at top, rgba(79,140,255,0.18), transparent 55%), var(--bg);
+      color: var(--text);
+    }
+    a { color: inherit; text-decoration: none; }
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(16px);
+      background: rgba(7,11,27,0.8);
+      border-bottom: 1px solid var(--border);
+    }
+    .header-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .brand img {
+      height: 72px;
+      width: auto;
+      border-radius: 10px;
+    }
+    .brand h1 {
+      font-size: 1.1rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin: 0;
+      color: var(--accent);
+    }
+    .nav-links {
+      display: flex;
+      gap: 18px;
+      font-size: 0.95rem;
+      color: var(--muted);
+    }
+    .cta-btn {
+      padding: 10px 18px;
+      border-radius: 999px;
+      border: 1px solid var(--accent);
+      color: var(--text);
+      background: linear-gradient(120deg, var(--accent), var(--accent-dark));
+      font-weight: 600;
+    }
+    .page-shell {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+    }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 32px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+    }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+      align-items: stretch;
+    }
+    .hero-copy h2 {
+      font-size: clamp(2rem, 4vw, 2.8rem);
+      margin: 0 0 12px;
+    }
+    .hero-copy p {
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: rgba(79,140,255,0.15);
+      color: var(--accent);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    form label.option {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 4px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--panel-light);
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    .toggle-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+    .primary-btn {
+      display: inline-flex;
+      justify-content: center;
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      border: none;
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+      margin-top: 14px;
+    }
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 18px;
+      margin-top: 32px;
+    }
+    .info-card {
+      padding: 18px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: var(--panel-light);
+    }
+    .plan-table {
+      width: 100%;
+      border-collapse: collapse;
+      color: var(--text);
+    }
+    .plan-table th,
+    .plan-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .plan-table th {
+      text-align: left;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 1px;
+      color: var(--muted);
+    }
+    .plan-table tbody tr:hover {
+      background: rgba(79,140,255,0.05);
+    }
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
+      gap: 16px;
+    }
+    .summary-card {
+      padding: 18px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: var(--panel-light);
+    }
+    footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.8rem;
+      padding: 24px 0 32px;
+    }
+    @media (max-width: 640px) {
+      .header-inner { flex-direction: column; gap: 12px; }
+      form label.option { width: 100%; justify-content: flex-start; }
+      .plan-table { font-size: 0.85rem; }
+    }
+  </style>
+`;
+
+function renderPage(title, mainContent) {
+  return `
+    <html>
+      <head>
+        <title>${title}</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="/styles/main.css">
+        ${BASE_STYLES}
+      </head>
+      <body>
+        <header class="site-header">
+          <div class="header-inner">
+            <div class="brand">
+              <img src="/images/allaround-athlete-logo.png" alt="AllAroundAthlete Logo">
+              <h1>All-Around Athlete</h1>
+            </div>
+            <nav class="nav-links">
+              <a href="/">Planner</a>
+              <a href="/dashboard">Dashboard</a>
+              <a href="#subscribe" class="cta-btn">Subscribe</a>
+            </nav>
+          </div>
+        </header>
+        <main class="page-shell">
+          ${mainContent}
+        </main>
+        <footer>
+          © ${new Date().getFullYear()} AllAroundAthlete · Built for everyday consistency
+        </footer>
+      </body>
+    </html>
+  `;
+}
+
 app.get('/', (req, res) => {
-  const beginnerMode = false; // Always false for GET, unless you want to persist state
   const equipmentOptions = EQUIPMENT_LIST.map(eq =>
     `<label class="option" data-equip="${eq}"><input type="checkbox" name="equipment" value="${eq}"> ${eq}</label>`
   ).join('');
   const muscleOptions = MUSCLE_GROUPS.map(mg =>
     `<label class="option" data-muscle="${mg}"><input type="checkbox" name="muscle" value="${mg}"> ${mg}</label>`
   ).join('');
-  res.send(`
-    <html>
-    <head>
-      <title>AllAroundAthlete - Starter Gym Planner</title>
-      <meta name="viewport" content="width=device-width, initial-scale=1">
-      <link rel="stylesheet" href="/styles/main.css">
-    </head>
-    <body>
-      <header class="header">
-        <div class="header-content">
-          <img src="/images/allaround-athlete-logo.png" alt="AllAroundAthlete Logo" style="height:90px;width:auto;margin-right:22px;background:transparent;border-radius:6px;display:block;">
-          <span style="font-size:1.2em;font-weight:700;color:#4f8cff;letter-spacing:2px;margin-right:32px;">All-Around Athlete</span>
-          <nav class="header-tabs"><a href="/">Home</a> | <a href="/dashboard">My Profile</a></nav>
+
+  const landingContent = `
+    <section class="panel" style="margin-bottom:28px;">
+      <div class="hero-copy">
+        <span class="badge">Why another planner?</span>
+        <h2 style="margin:12px 0 12px;">Most "beginner" apps assume you already speak gym fluently.</h2>
+        <p style="color:var(--muted);line-height:1.6;max-width:820px;">
+          They drown you in jargon, over-deliver complicated splits, and never explain what to actually do once you walk past the check-in desk. AllAroundAthlete keeps the interface calm, limits you to a handful of purposeful exercises, and translates intentions into clear rep, set, and etiquette guidance so you never feel like you are in the wrong place.
+        </p>
+      </div>
+    </section>
+    <section class="hero-grid">
+      <div class="panel hero-copy">
+        <span class="badge">Starter program</span>
+        <h2>Build a realistic session with the gear you actually have.</h2>
+        <p>AllAroundAthlete designs beginner-friendly workouts that respect limited equipment, short time windows, and fresh motivation. No fluff—just three to five purposeful movements with dialed-in rep and set targets.</p>
+        <div class="info-grid">
+          <div class="info-card">
+            <small style="color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Goal Support</small>
+            <h3 style="margin:6px 0 0;">Dieting & Bulking tracks</h3>
+          </div>
+          <div class="info-card">
+            <small style="color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Smart Equipment</small>
+            <h3 style="margin:6px 0 0;">Auto filters for beginners</h3>
+          </div>
+          <div class="info-card">
+            <small style="color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Subscription ready</small>
+            <h3 style="margin:6px 0 0;">Stripe + Cloudflare stack</h3>
+          </div>
         </div>
-      </header>
-      <div class="container">
-        <h1>Starter Gym Planner</h1>
+      </div>
+      <div class="panel">
+        <h3 style="margin-top:0;">Plan your next lift</h3>
+        <p style="color:var(--muted);margin-bottom:18px;">Choose the tools on hand and the muscle groups you want to prioritize today.</p>
         <form method="POST" action="/plan">
-          <p style="margin-bottom:8px;">Equipment:</p>
-          <button type="button" onclick="toggleSection('equip-section')" class="toggle-btn">Show options</button>
-          <div id="equip-section" style="display:none;margin-bottom:12px;">
+          <p style="margin-bottom:6px;font-weight:600;">Equipment</p>
+          <button type="button" onclick="toggleSection('equip-section')" class="toggle-btn">Select equipment</button>
+          <div id="equip-section" style="display:none;margin:12px 0 20px;">
             ${equipmentOptions}
           </div>
-          <hr>
-          <p style="margin-bottom:8px;">Muscle Groups:</p>
-          <button type="button" onclick="toggleSection('muscle-section')" class="toggle-btn">Show options</button>
-          <div id="muscle-section" style="display:none;margin-bottom:12px;">
+          <p style="margin-bottom:6px;font-weight:600;">Muscle Groups</p>
+          <button type="button" onclick="toggleSection('muscle-section')" class="toggle-btn">Select muscle focus</button>
+          <div id="muscle-section" style="display:none;margin:12px 0 20px;">
             ${muscleOptions}
           </div>
-          <hr>
-          <button type="submit" class="button">Build My Plan</button>
+          <button type="submit" class="primary-btn">Generate plan</button>
         </form>
       </div>
-      <script>
+    </section>
+    <section class="hero-grid" style="margin-top:32px;" id="gymxiety">
+      <div class="panel">
+        <span class="badge">Gymxiety Mode</span>
+        <h3 style="margin:12px 0 8px;">Confidence coaching built into the basic membership.</h3>
+        <p style="color:var(--muted);line-height:1.6;">Automatic reminders, polite prompts, and gym-etiquette walk-throughs show up inside every plan once you subscribe. You will know how to approach equipment, share the space, and avoid those awkward “am I doing this right?” moments.</p>
+        <p style="color:var(--muted);margin-top:18px;">Turn it on from your dashboard and Gymxiety Mode travels with you—whether it’s a commercial gym, apartment setup, or hotel fitness room.</p>
+      </div>
+      <div class="panel">
+        <h3 style="margin-top:0;">Subscription ready</h3>
+        <p style="color:var(--muted);line-height:1.6;">Hosted on Cloudflare for instant global performance and connected to Stripe for secure billing. When you upgrade, Gymxiety Mode unlocks audio prompts, etiquette micro-lessons, and equipment walkthroughs.</p>
+        <div class="info-card" style="margin-top:18px;">
+          <small style="color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Coming soon</small>
+          <h3 style="margin:8px 0 0;">Add-on packs for commercial gyms, apartment gyms, and hotel gyms.</h3>
+        </div>
+      </div>
+    </section>
+    <script>
       function toggleSection(id) {
         const section = document.getElementById(id);
         section.style.display = section.style.display === 'none' ? 'block' : 'none';
       }
-      </script>
-    </body>
-    </html>
-  `);
+    </script>
+  `;
+
+  res.send(renderPage('AllAroundAthlete - Starter Gym Planner', landingContent));
 });
 
 app.post('/plan', (req, res) => {
@@ -198,64 +461,73 @@ app.post('/plan', (req, res) => {
   const planTable = plan.length
     ? `
       <div style="overflow-x:auto;width:100%;">
-      <table class="plan-table" style="width:100%;min-width:1100px;margin:auto;">
-        <thead>
-          <tr>
-            <th>Exercise</th>
-            <th>Equipment</th>
-            <th>Muscle Group</th>
-            <th>Rep Range</th>
-            <th>Sets</th>
-            <th>Recommended Weight</th>
-            <th>Description</th>
-            <th>Demo</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${plan.map(ex => {
-            return `
-              <tr>
-                <td>${ex.name}</td>
-                <td>${ex.equipment.join(', ')}</td>
-                <td>${ex.muscle_group}</td>
-                <td>${repRange}</td>
-                <td>${setsPerExercise}</td>
-                <td>${getRecommendedWeight(ex, benchMax, squatMax, deadliftMax, percent, noMax)}</td>
-                <td style="max-width:320px;">${ex.howto}</td>
-                <td>${ex.video ? `<iframe width="160" height="90" src="${ex.video}" title="${ex.name} demo" frameborder="0" allowfullscreen style="border-radius:6px;"></iframe>` : ''}</td>
-              </tr>
-            `;
-          }).join('')}
-        </tbody>
-      </table>
+        <table class="plan-table" style="min-width:960px;margin:auto;">
+          <thead>
+            <tr>
+              <th>Exercise</th>
+              <th>Equipment</th>
+              <th>Muscle Group</th>
+              <th>Rep Range</th>
+              <th>Sets</th>
+              <th>Recommended Weight</th>
+              <th>Description</th>
+              <th>Demo</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${plan.map(ex => `
+                <tr>
+                  <td>${ex.name}</td>
+                  <td>${ex.equipment.join(', ')}</td>
+                  <td>${ex.muscle_group}</td>
+                  <td>${repRange}</td>
+                  <td>${setsPerExercise}</td>
+                  <td>${getRecommendedWeight(ex, benchMax, squatMax, deadliftMax, percent, noMax)}</td>
+                  <td style="max-width:320px;">${ex.howto}</td>
+                  <td>${ex.video ? `<iframe width="160" height="90" src="${ex.video}" title="${ex.name} demo" frameborder="0" allowfullscreen style="border-radius:6px;"></iframe>` : ''}</td>
+                </tr>
+            `).join('')}
+          </tbody>
+        </table>
       </div>
     `
     : '<p>No workouts available for selected equipment and muscle group.</p>';
 
-  res.send(`
-    <html>
-    <head>
-      <title>AllAroundAthlete - Starter Gym Planner</title>
-      <meta name="viewport" content="width=device-width, initial-scale=1">
-      <link rel="stylesheet" href="/styles/main.css">
-    </head>
-    <body>
-      <header class="header">
-        <div class="header-content">
-          <img src="/images/allaround-athlete-logo.png" alt="AllAroundAthlete Logo" style="height:90px;width:auto;margin-right:22px;background:transparent;border-radius:6px;display:block;">
-          <span style="font-size:1.2em;font-weight:700;color:#4f8cff;letter-spacing:2px;margin-right:32px;">All-Around Athlete</span>
-          <nav class="header-tabs"><a href="/">Home</a> | <a href="/dashboard">My Profile</a></nav>
+  const planContent = `
+    <section class="panel" style="margin-bottom:24px;">
+      <h2 style="margin-top:0;">Session overview</h2>
+      <div class="summary-grid">
+        <div class="summary-card">
+          <small style="color:var(--muted);">Movements</small>
+          <h3 style="margin:6px 0 0;">${plan.length || 0}</h3>
         </div>
-      </header>
-      <div class="container">
-        <h1>Your Custom Gym Plan</h1>
-        <p>Based on your equipment, muscle group(s), and goal:</p>
-        ${planTable}
-        <a href="/" class="button">Back</a>
+        <div class="summary-card">
+          <small style="color:var(--muted);">Focus</small>
+          <h3 style="margin:6px 0 0;">${filteredMuscles.slice(0, 2).join(', ') || 'General'}</h3>
+        </div>
+        <div class="summary-card">
+          <small style="color:var(--muted);">Intensity</small>
+          <h3 style="margin:6px 0 0;">${repRange} · ${setsPerExercise}</h3>
+        </div>
+        <div class="summary-card">
+          <small style="color:var(--muted);">Mode</small>
+          <h3 style="margin:6px 0 0;">${mode === 'bulking' ? 'Bulking' : 'Dieting'}</h3>
+        </div>
       </div>
-    </body>
-    </html>
-  `);
+    </section>
+    <section class="panel" style="margin-bottom:24px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:12px;">
+        <div>
+          <h2 style="margin:0;">Your custom gym plan</h2>
+          <p style="color:var(--muted);margin:6px 0 0;">Purposeful lifts matched to your selected equipment.</p>
+        </div>
+        <a href="/" class="cta-btn" style="text-decoration:none;">Start over</a>
+      </div>
+      ${planTable}
+    </section>
+  `;
+
+  res.send(renderPage('Your Custom Gym Plan - AllAroundAthlete', planContent));
 });
 
 app.get('/dashboard', (req, res) => {
@@ -268,59 +540,52 @@ app.get('/dashboard', (req, res) => {
   const userWeight = 180; // Replace with real user input
   const userHeight = 70; // Replace with real user input
 
-  res.send(`
-    <html>
-    <head>
-      <title>User Dashboard - AllAroundAthlete</title>
-      <meta name="viewport" content="width=device-width, initial-scale=1">
-      <link rel="stylesheet" href="/styles/main.css">
-    </head>
-    <body>
-      <header class="header">
-        <div class="header-content">
-          <img src="/images/allaround-athlete-logo.png" alt="AllAroundAthlete Logo" style="height:90px;width:auto;margin-right:22px;background:transparent;border-radius:6px;display:block;">
-          <span style="font-size:1.2em;font-weight:700;color:#4f8cff;letter-spacing:2px;margin-right:32px;">All-Around Athlete</span>
-          <nav class="header-tabs"><a href="/">Home</a> | <a href="/dashboard">My Profile</a></nav>
+  const dashboardContent = `
+    <section class="panel" style="margin-bottom:28px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;">
+        <div>
+          <span class="badge">Member since</span>
+          <h2 style="margin:10px 0 6px;">${userDuration} of consistent work</h2>
+          <p style="color:var(--muted);max-width:520px;">Keep logging sessions to unlock premium periodization templates. Your subscription syncs automatically with Stripe, so upgrades are instant.</p>
         </div>
-      </header>
-      <div class="container">
-        <h1>User Dashboard</h1>
-        <div style="margin-bottom:18px;">
-          <strong>Time Using App:</strong> ${userDuration}
+        <button class="cta-btn">Manage Subscription</button>
+      </div>
+      <div class="summary-grid" style="margin-top:24px;">
+        <div class="summary-card">
+          <small style="color:var(--muted);">Current Weight</small>
+          <h3 style="margin:6px 0 0;">${userWeight} lbs</h3>
         </div>
-        <div style="margin-bottom:18px;">
-          <strong>Saved Workouts:</strong>
-          <ul>
-            ${savedWorkouts.map(w => `<li>${w}</li>`).join('')}
-          </ul>
+        <div class="summary-card">
+          <small style="color:var(--muted);">Height</small>
+          <h3 style="margin:6px 0 0;">${userHeight} in</h3>
         </div>
-        <div style="margin-bottom:18px;">
-          <strong>Maxes:</strong>
-          <ul>
-            <li>Bench Press: ${benchMax} lbs</li>
-            <li>Squat: ${squatMax} lbs</li>
-            <li>Deadlift: ${deadliftMax} lbs</li>
-          </ul>
-        </div>
-        <div style="margin-bottom:18px;">
-          <strong>Profile:</strong>
-          <ul>
-            <li>Height: ${userHeight} in</li>
-            <li>Weight: ${userWeight} lbs</li>
-          </ul>
-        </div>
-        <div style="margin-bottom:18px;">
-          <strong>Progress Tracking:</strong>
-          <ul>
-            <li>Update maxes, weight, and height</li>
-            <li>Track workout frequency</li>
-            <li>View progress charts (coming soon)</li>
-          </ul>
+        <div class="summary-card">
+          <small style="color:var(--muted);">Bench / Squat / Dead</small>
+          <h3 style="margin:6px 0 0;">${benchMax}/${squatMax}/${deadliftMax} lbs</h3>
         </div>
       </div>
-    </body>
-    </html>
-  `);
+    </section>
+    <section class="hero-grid" style="gap:24px;">
+      <div class="panel">
+        <h3 style="margin-top:0;">Saved workouts</h3>
+        <p style="color:var(--muted);margin-top:4px;">Recently generated plans you bookmarked.</p>
+        <ul style="margin:18px 0 0;padding-left:20px;line-height:1.8;">
+          ${savedWorkouts.map(w => `<li>${w}</li>`).join('')}
+        </ul>
+      </div>
+      <div class="panel">
+        <h3 style="margin-top:0;">Next focus</h3>
+        <p style="color:var(--muted);margin-top:4px;">Dial in your training priorities for the week.</p>
+        <ul style="margin:18px 0 0;padding-left:20px;line-height:1.8;">
+          <li>Update rep targets after next PR attempt</li>
+          <li>Log cardio minutes in the mobile app</li>
+          <li>Enable Cloudflare Gateway for faster loads</li>
+        </ul>
+      </div>
+    </section>
+  `;
+
+  res.send(renderPage('Dashboard - AllAroundAthlete', dashboardContent));
 });
 
 app.listen(PORT, () => {
