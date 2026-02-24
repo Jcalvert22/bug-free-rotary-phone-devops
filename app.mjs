@@ -91,6 +91,15 @@ function normalizeSelection(value) {
   return Array.isArray(value) ? value : [value];
 }
 
+function shuffleArray(list) {
+  const array = [...list];
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
 app.get('/', (req, res) => {
   const beginnerMode = false; // Always false for GET, unless you want to persist state
   const equipmentOptions = EQUIPMENT_LIST.map(eq =>
@@ -158,6 +167,7 @@ app.post('/plan', (req, res) => {
   let deadliftMax = noMax ? 0 : parseFloat(req.body.deadlift_max) || 0;
 
   const repRange = mode === 'bulking' ? '4-8 reps, heavy weight' : '12-20 reps, light/moderate weight';
+  const setsPerExercise = mode === 'bulking' ? '4 sets' : '3 sets';
 
   let filteredEquipment = selectedEquipment;
   let filteredMuscles = selectedMuscles;
@@ -172,12 +182,18 @@ app.post('/plan', (req, res) => {
       ex.muscle_group === muscle &&
       ex.equipment.some(eq => filteredEquipment.includes(eq) || (eq === "Bodyweight" && filteredEquipment.includes("Bodyweight Only")))
     );
-    for (let i = matches.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [matches[i], matches[j]] = [matches[j], matches[i]];
-    }
-    plan = plan.concat(matches.slice(0, exercisesPerGroup));
+    const shuffledMatches = shuffleArray(matches);
+    plan = plan.concat(shuffledMatches.slice(0, exercisesPerGroup));
   });
+
+  const MIN_MOVEMENTS = 3;
+  const MAX_MOVEMENTS = 5;
+  if (plan.length >= MIN_MOVEMENTS) {
+    const targetCount = Math.min(plan.length, MAX_MOVEMENTS);
+    if (plan.length > targetCount) {
+      plan = shuffleArray(plan).slice(0, targetCount);
+    }
+  }
 
   const planTable = plan.length
     ? `
@@ -189,6 +205,7 @@ app.post('/plan', (req, res) => {
             <th>Equipment</th>
             <th>Muscle Group</th>
             <th>Rep Range</th>
+            <th>Sets</th>
             <th>Recommended Weight</th>
             <th>Description</th>
             <th>Demo</th>
@@ -202,6 +219,7 @@ app.post('/plan', (req, res) => {
                 <td>${ex.equipment.join(', ')}</td>
                 <td>${ex.muscle_group}</td>
                 <td>${repRange}</td>
+                <td>${setsPerExercise}</td>
                 <td>${getRecommendedWeight(ex, benchMax, squatMax, deadliftMax, percent, noMax)}</td>
                 <td style="max-width:320px;">${ex.howto}</td>
                 <td>${ex.video ? `<iframe width="160" height="90" src="${ex.video}" title="${ex.name} demo" frameborder="0" allowfullscreen style="border-radius:6px;"></iframe>` : ''}</td>
