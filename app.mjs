@@ -739,6 +739,8 @@ const BASE_STYLES = `
       gap: 18px;
       font-size: 0.95rem;
       color: var(--muted);
+      flex-wrap: wrap;
+      justify-content: flex-end;
     }
     .cta-btn {
       padding: 10px 18px;
@@ -1730,17 +1732,38 @@ const BASE_STYLES = `
       font-size: 0.8rem;
       padding: 24px 0 32px;
     }
-    @media (max-width: 640px) {
+    @media (max-width: 900px) {
       .header-inner { flex-direction: column; gap: 12px; }
+      .nav-links { justify-content: center; }
+      .page-shell { padding: 36px 18px 64px; }
+      .landing-hero { padding: 40px 24px; grid-template-columns: 1fr; }
+      .hero-actions { flex-direction: column; }
+      .hero-btn { width: 100%; }
+      .relaxed-section { padding: 32px 22px; }
+      .subscription-section { padding: 32px 22px; }
+      .plan-overview { grid-template-columns: 1fr; }
+      .plan-card { padding: 24px; }
+      .plan-grid { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+      .plan-stats { flex-direction: column; }
+      .plan-upcoming-list li { justify-content: flex-start; }
+    }
+    @media (max-width: 640px) {
       form label.option { width: 100%; justify-content: flex-start; }
       .plan-table { font-size: 0.85rem; }
-      .landing-hero { padding: 48px 24px; }
       .hero-secondary-card { order: -1; }
-      .relaxed-section { padding: 32px 20px; }
-      .subscription-section { padding: 32px 20px; }
-      .subscription-pricing { flex-direction: column; align-items: flex-start; }
-      .plan-card { padding: 22px; }
-      .plan-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+      .plan-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 520px) {
+      .page-shell { padding: 28px 14px 56px; }
+      .hero-intro h1 { font-size: 2.1rem; }
+      .hero-intro h2 { font-size: 1.1rem; }
+      .plan-card { padding: 20px; }
+      .plan-upcoming-list li { flex-direction: column; align-items: flex-start; }
+      .exercise-row { flex-direction: column; align-items: flex-start; }
+      .exercise-meta { width: 100%; flex-direction: row; justify-content: space-between; }
+      .exercise-meta input { width: 100%; }
+      .subscription-pricing { align-items: flex-start; }
+      .pricing-amounts { width: 100%; justify-content: space-between; }
     }
   </style>
 `;
