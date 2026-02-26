@@ -78,10 +78,19 @@ const BEGINNER_MUSCLES = [
 ];
 
 const SEX_OPTIONS = ['Female', 'Male', 'Prefer not to say'];
+const PERCENT_MIN = 30;
+const PERCENT_MAX = 95;
+const PERCENT_STEP = 5;
+const PERCENT_OFFSET_MIN = -25;
+const PERCENT_OFFSET_MAX = 25;
+const REP_STEP = 2;
+const REP_DELTA_MIN = -6;
+const REP_DELTA_MAX = 6;
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 const userState = {
+  isSubscribed: false,
   profile: {
     name: 'Jace Calvert',
     subtitle: 'Short, calm sessions focused on solid form and breathing.',
@@ -100,7 +109,10 @@ const userState = {
     totalWeeks: 8,
     nextWorkout: 'Upper Body Reset'
   },
-  workouts: seedWorkouts()
+  workouts: seedWorkouts(),
+  planAdjustments: {},
+  repAdjustments: {},
+  currentPlan: []
 };
 
 function seedWorkouts() {
@@ -150,6 +162,40 @@ function normalizeDay(value) {
   const date = new Date(value);
   date.setHours(0, 0, 0, 0);
   return date.getTime();
+}
+
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function getAdjustedPercent(basePercent, exerciseName) {
+  const offset = userState.planAdjustments[exerciseName] || 0;
+  return clamp(basePercent + offset, PERCENT_MIN, PERCENT_MAX);
+}
+
+function applyRepDeltaToRange(repRange, exerciseName) {
+  const delta = userState.repAdjustments[exerciseName] || 0;
+  if (!delta) return repRange;
+  const match = repRange.match(/(\d+)\s*-\s*(\d+)/);
+  if (!match) return repRange;
+  const low = parseInt(match[1], 10);
+  const high = parseInt(match[2], 10);
+  if (Number.isNaN(low) || Number.isNaN(high)) return repRange;
+  const newLow = Math.max(1, low + delta);
+  const newHigh = Math.max(newLow + 1, high + delta);
+  return repRange.replace(match[0], `${newLow}-${newHigh}`);
+}
+
+function updatePercentAdjustment(exerciseName, delta) {
+  const current = userState.planAdjustments[exerciseName] || 0;
+  const next = clamp(current + delta, PERCENT_OFFSET_MIN, PERCENT_OFFSET_MAX);
+  userState.planAdjustments[exerciseName] = next;
+}
+
+function updateRepAdjustment(exerciseName, delta) {
+  const current = userState.repAdjustments[exerciseName] || 0;
+  const next = clamp(current + delta, REP_DELTA_MIN, REP_DELTA_MAX);
+  userState.repAdjustments[exerciseName] = next;
 }
 
 function calculateStreak(workouts) {
@@ -393,6 +439,50 @@ const BASE_STYLES = `
     }
     .plan-table tbody tr:hover {
       background: rgba(79,140,255,0.05);
+    }
+    .plan-feedback-card {
+      margin-top: 24px;
+    }
+    .plan-feedback-form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .feedback-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .feedback-row:last-child {
+      border-bottom: none;
+    }
+    .feedback-subtext {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+    .feedback-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .feedback-options label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      background: var(--panel-light);
+    }
+    .feedback-options input {
+      accent-color: var(--accent);
     }
     .summary-grid {
       display: grid;
@@ -807,10 +897,11 @@ function renderPage(title, mainContent) {
               <h1>All-Around Athlete</h1>
             </div>
             <nav class="nav-links">
-              <a href="/">Planner</a>
+              <a href="/">Home</a>
+              <a href="/planner">Planner</a>
               <a href="/dashboard">Dashboard</a>
               <a href="/profile">Profile</a>
-              <a href="#subscribe" class="cta-btn">Subscribe</a>
+              <a href="/subscribe" class="cta-btn">Subscribe</a>
             </nav>
           </div>
         </header>
@@ -825,7 +916,10 @@ function renderPage(title, mainContent) {
   `;
 }
 
-app.get('/', (req, res) => {
+app.get('/planner', (req, res) => {
+  if (!userState.isSubscribed) {
+    return res.redirect('/subscribe');
+  }
   if (!userState.profile.onboardingComplete) {
     return res.redirect('/onboarding');
   }
@@ -893,7 +987,7 @@ app.get('/', (req, res) => {
       </div>
       <div class="panel">
         <h3 style="margin-top:0;">Subscription ready</h3>
-        <p style="color:var(--muted);line-height:1.6;">Hosted on Cloudflare for instant global performance and connected to Stripe for secure billing. When you upgrade, Gymxiety Mode unlocks audio prompts, etiquette micro-lessons, and equipment walkthroughs.</p>
+        <p style="color:var(--muted);line-height:1.6;">Hosted on Cloudflare for instant global performance and connected to Stripe for secure billing. When you upgrade, Gymxiety Mode unlocks set check-ins, etiquette micro-lessons, and equipment walkthroughs.</p>
         <div class="info-card" style="margin-top:18px;">
           <small style="color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Coming soon</small>
           <h3 style="margin:8px 0 0;">Add-on packs for commercial gyms, apartment gyms, and hotel gyms.</h3>
@@ -911,7 +1005,91 @@ app.get('/', (req, res) => {
   res.send(renderPage('AllAroundAthlete - Starter Gym Planner', landingContent));
 });
 
+app.get('/', (req, res) => {
+  const ctaHref = userState.isSubscribed ? (userState.profile.onboardingComplete ? '/planner' : '/onboarding') : '/subscribe';
+  const ctaLabel = userState.isSubscribed ? (userState.profile.onboardingComplete ? 'Open Planner' : 'Finish Setup') : 'Start My Plan';
+  const marketingContent = `
+    <section class="panel" style="margin-bottom:28px;">
+      <div class="hero-copy">
+        <span class="badge">Calm onboarding</span>
+        <h2 style="margin:12px 0 12px;">A beginner gym companion that never shames or overwhelms.</h2>
+        <p class="onboarding-lede">AllAroundAthlete keeps screens clean, limits choices, and pairs every workout with etiquette hints. Before you ever tap through a plan, we learn your goal, body, and equipment so nothing feels random.</p>
+        <a class="cta-btn" style="display:inline-flex;margin-top:14px;" href="${ctaHref}">${ctaLabel}</a>
+      </div>
+    </section>
+    <section class="hero-grid">
+      <div class="panel hero-copy">
+        <span class="badge">What stays calm</span>
+        <h2>Soft visuals, tight guidance.</h2>
+        <p>We treat “beginner” like a season, not a skill issue. Expect plain-language cues, realistic movement counts, and reminders on how to share equipment politely.</p>
+        <ul style="margin:18px 0 0;padding-left:22px;line-height:1.8;color:var(--muted);">
+          <li>3-5 movements per session</li>
+          <li>Etquette and breathing tips inline</li>
+          <li>Gymxiety mode for gentle etiquette cues</li>
+          <li>Set-by-set “too easy / too hard” adjustments</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3 style="margin-top:0;">How it works</h3>
+        <div class="info-grid">
+          <div class="info-card">
+            <small style="color:var(--muted);text-transform:uppercase;letter-spacing:1px;">1. Subscribe</small>
+            <p style="color:var(--text);margin:8px 0 0;">Unlocks the planner, dashboard, and confidence prompts.</p>
+          </div>
+          <div class="info-card">
+            <small style="color:var(--muted);text-transform:uppercase;letter-spacing:1px;">2. Onboarding</small>
+            <p style="color:var(--text);margin:8px 0 0;">Share your goal, height, weight, and location so sessions stay personal.</p>
+          </div>
+          <div class="info-card">
+            <small style="color:var(--muted);text-transform:uppercase;letter-spacing:1px;">3. Plan & progress</small>
+            <p style="color:var(--text);margin:8px 0 0;">Generate gentle workouts, log completions, and track streaks.</p>
+          </div>
+        </div>
+        <a href="${ctaHref}" class="primary-btn" style="margin-top:22px;">${ctaLabel}</a>
+      </div>
+    </section>
+  `;
+
+  res.send(renderPage('AllAroundAthlete - Welcome', marketingContent));
+});
+
+app.get('/subscribe', (req, res) => {
+  if (userState.isSubscribed && !userState.profile.onboardingComplete) {
+    return res.redirect('/onboarding');
+  }
+  if (userState.isSubscribed) {
+    return res.redirect('/planner');
+  }
+  const subscribeContent = `
+    <section class="panel onboarding-panel">
+      <span class="badge">Membership</span>
+      <h2>Unlock the calm planner.</h2>
+      <p class="onboarding-lede">We are not processing real payments inside this demo—tap the button below to simulate a subscription and move into onboarding.</p>
+      <form method="POST" action="/subscribe" class="onboarding-form">
+        <button class="primary-btn" type="submit">Confirm subscription</button>
+      </form>
+      <p style="color:var(--muted);margin-top:12px;font-size:0.9rem;">Already subscribed? <a href="/planner" style="color:var(--text);">Head to your planner.</a></p>
+    </section>
+  `;
+  res.send(renderPage('Subscribe - AllAroundAthlete', subscribeContent));
+});
+
+app.post('/subscribe', (req, res) => {
+  if (userState.isSubscribed) {
+    return res.redirect(userState.profile.onboardingComplete ? '/planner' : '/onboarding');
+  }
+  userState.isSubscribed = true;
+  userState.profile.onboardingComplete = false;
+  res.redirect('/onboarding');
+});
+
 app.post('/plan', (req, res) => {
+  if (!userState.isSubscribed) {
+    return res.redirect('/subscribe');
+  }
+  if (!userState.profile.onboardingComplete) {
+    return res.redirect('/onboarding');
+  }
   const selectedEquipment = normalizeSelection(req.body.equipment);
   const selectedMuscles = normalizeSelection(req.body.muscle);
   let mode = req.body.mode || 'dieting';
@@ -954,7 +1132,37 @@ app.post('/plan', (req, res) => {
     }
   }
 
-  const planTable = plan.length
+  let planRows = [];
+  if (plan.length) {
+    planRows = plan.map((ex, index) => {
+      const exerciseKey = ex.name;
+      const adjustedPercent = getAdjustedPercent(percent, exerciseKey);
+      const recommendedWeight = getRecommendedWeight(ex, benchMax, squatMax, deadliftMax, adjustedPercent, noMax);
+      const usesWeight = /lbs/i.test(recommendedWeight);
+      const displayedRepRange = usesWeight ? repRange : applyRepDeltaToRange(repRange, exerciseKey);
+      return {
+        id: index,
+        exercise: ex.name,
+        equipment: ex.equipment.join(', '),
+        muscle: ex.muscle_group,
+        repRange: displayedRepRange,
+        sets: setsPerExercise,
+        recommendedWeight,
+        description: ex.howto,
+        video: ex.video,
+        usesWeight
+      };
+    });
+    userState.currentPlan = planRows.map(row => ({
+      id: row.id,
+      name: row.exercise,
+      usesWeight: row.usesWeight
+    }));
+  } else {
+    userState.currentPlan = [];
+  }
+
+  const planTable = planRows.length
     ? `
       <div style="overflow-x:auto;width:100%;">
         <table class="plan-table" style="min-width:960px;margin:auto;">
@@ -971,16 +1179,16 @@ app.post('/plan', (req, res) => {
             </tr>
           </thead>
           <tbody>
-            ${plan.map(ex => `
+            ${planRows.map(row => `
                 <tr>
-                  <td>${ex.name}</td>
-                  <td>${ex.equipment.join(', ')}</td>
-                  <td>${ex.muscle_group}</td>
-                  <td>${repRange}</td>
-                  <td>${setsPerExercise}</td>
-                  <td>${getRecommendedWeight(ex, benchMax, squatMax, deadliftMax, percent, noMax)}</td>
-                  <td style="max-width:320px;">${ex.howto}</td>
-                  <td>${ex.video ? `<iframe width="160" height="90" src="${ex.video}" title="${ex.name} demo" frameborder="0" allowfullscreen style="border-radius:6px;"></iframe>` : ''}</td>
+                  <td>${row.exercise}</td>
+                  <td>${row.equipment}</td>
+                  <td>${row.muscle}</td>
+                  <td>${row.repRange}</td>
+                  <td>${row.sets}</td>
+                  <td>${row.recommendedWeight}</td>
+                  <td style="max-width:320px;">${row.description}</td>
+                  <td>${row.video ? `<iframe width="160" height="90" src="${row.video}" title="${row.exercise} demo" frameborder="0" allowfullscreen style="border-radius:6px;"></iframe>` : ''}</td>
                 </tr>
             `).join('')}
           </tbody>
@@ -989,13 +1197,38 @@ app.post('/plan', (req, res) => {
     `
     : '<p>No workouts available for selected equipment and muscle group.</p>';
 
+  const feedbackPanel = planRows.length
+    ? `
+      <section class="panel plan-feedback-card">
+        <h3 style="margin-top:0;">Did any set feel off?</h3>
+        <p style="color:var(--muted);margin:6px 0 18px;">Select how each lift felt so we can gently adjust weight or reps next time.</p>
+        <form method="POST" action="/plan/feedback" class="plan-feedback-form">
+          ${planRows.map(row => `
+            <div class="feedback-row">
+              <div>
+                <strong>${row.exercise}</strong>
+                <p class="feedback-subtext">${row.usesWeight ? 'Weight calibration' : 'Rep calibration'}</p>
+              </div>
+              <div class="feedback-options">
+                <label><input type="radio" name="feedback_${row.id}" value="too_easy" required> Too easy</label>
+                <label><input type="radio" name="feedback_${row.id}" value="perfect"> Perfect</label>
+                <label><input type="radio" name="feedback_${row.id}" value="too_hard"> Too hard</label>
+              </div>
+            </div>
+          `).join('')}
+          <button type="submit" class="primary-btn" style="margin-top:12px;">Save adjustments</button>
+        </form>
+      </section>
+    `
+    : '';
+
   const planContent = `
     <section class="panel" style="margin-bottom:24px;">
       <h2 style="margin-top:0;">Session overview</h2>
       <div class="summary-grid">
         <div class="summary-card">
           <small style="color:var(--muted);">Movements</small>
-          <h3 style="margin:6px 0 0;">${plan.length || 0}</h3>
+          <h3 style="margin:6px 0 0;">${planRows.length || 0}</h3>
         </div>
         <div class="summary-card">
           <small style="color:var(--muted);">Focus</small>
@@ -1017,16 +1250,48 @@ app.post('/plan', (req, res) => {
           <h2 style="margin:0;">Your custom gym plan</h2>
           <p style="color:var(--muted);margin:6px 0 0;">Purposeful lifts matched to your selected equipment.</p>
         </div>
-        <a href="/" class="cta-btn" style="text-decoration:none;">Start over</a>
+        <a href="/planner" class="cta-btn" style="text-decoration:none;">Start over</a>
       </div>
       ${planTable}
     </section>
+    ${feedbackPanel}
   `;
 
   res.send(renderPage('Your Custom Gym Plan - AllAroundAthlete', planContent));
 });
 
+app.post('/plan/feedback', (req, res) => {
+  if (!userState.isSubscribed) {
+    return res.redirect('/subscribe');
+  }
+  if (!userState.profile.onboardingComplete) {
+    return res.redirect('/onboarding');
+  }
+  if (!userState.currentPlan.length) {
+    return res.redirect('/planner');
+  }
+
+  userState.currentPlan.forEach(entry => {
+    const choice = req.body[`feedback_${entry.id}`];
+    if (!choice) return;
+    if (entry.usesWeight) {
+      if (choice === 'too_easy') updatePercentAdjustment(entry.name, PERCENT_STEP);
+      if (choice === 'too_hard') updatePercentAdjustment(entry.name, -PERCENT_STEP);
+      if (choice === 'perfect') return; // no change
+    } else {
+      if (choice === 'too_easy') updateRepAdjustment(entry.name, REP_STEP);
+      if (choice === 'too_hard') updateRepAdjustment(entry.name, -REP_STEP);
+      if (choice === 'perfect') return;
+    }
+  });
+
+  res.redirect('/planner');
+});
+
 app.get('/dashboard', (req, res) => {
+  if (!userState.isSubscribed) {
+    return res.redirect('/subscribe');
+  }
   if (!userState.profile.onboardingComplete) {
     return res.redirect('/onboarding');
   }
@@ -1088,6 +1353,12 @@ app.get('/dashboard', (req, res) => {
 });
 
 app.get('/onboarding', (req, res) => {
+  if (!userState.isSubscribed) {
+    return res.redirect('/subscribe');
+  }
+  if (userState.profile.onboardingComplete) {
+    return res.redirect('/planner');
+  }
   const profile = userState.profile;
   const sexOptionChips = renderSexOptions('sex', profile.sex, true);
 
@@ -1134,6 +1405,9 @@ app.get('/onboarding', (req, res) => {
 });
 
 app.post('/onboarding', (req, res) => {
+  if (!userState.isSubscribed) {
+    return res.redirect('/subscribe');
+  }
   const { goal, height, weight, sex, age, location } = req.body;
   const sanitizedHeight = sanitizeNumberInput(height, { min: 36, max: 96 });
   const sanitizedWeight = sanitizeNumberInput(weight, { min: 70, max: 600 });
@@ -1152,6 +1426,9 @@ app.post('/onboarding', (req, res) => {
 });
 
 app.get('/profile', (req, res) => {
+  if (!userState.isSubscribed) {
+    return res.redirect('/subscribe');
+  }
   if (!userState.profile.onboardingComplete) {
     return res.redirect('/onboarding');
   }
@@ -1327,11 +1604,23 @@ app.get('/profile', (req, res) => {
 });
 
 app.post('/profile/start-workout', (req, res) => {
+  if (!userState.isSubscribed) {
+    return res.redirect('/subscribe');
+  }
+  if (!userState.profile.onboardingComplete) {
+    return res.redirect('/onboarding');
+  }
   recordWorkoutCompletion();
   res.redirect('/profile');
 });
 
 app.post('/profile/update-profile', (req, res) => {
+  if (!userState.isSubscribed) {
+    return res.redirect('/subscribe');
+  }
+  if (!userState.profile.onboardingComplete) {
+    return res.redirect('/onboarding');
+  }
   const {
     name,
     subtitle,
@@ -1371,12 +1660,24 @@ app.post('/profile/update-profile', (req, res) => {
 });
 
 app.post('/profile/update-goal', (req, res) => {
+  if (!userState.isSubscribed) {
+    return res.redirect('/subscribe');
+  }
+  if (!userState.profile.onboardingComplete) {
+    return res.redirect('/onboarding');
+  }
   const { goal } = req.body;
   userState.profile.goal = cleanInput(goal, userState.profile.goal);
   res.redirect('/profile');
 });
 
 app.post('/profile/update-equipment', (req, res) => {
+  if (!userState.isSubscribed) {
+    return res.redirect('/subscribe');
+  }
+  if (!userState.profile.onboardingComplete) {
+    return res.redirect('/onboarding');
+  }
   const { equipment } = req.body;
   userState.profile.equipment = cleanInput(equipment, userState.profile.equipment);
   res.redirect('/profile');
