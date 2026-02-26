@@ -77,6 +77,127 @@ const BEGINNER_MUSCLES = [
   'Upper Chest', 'Chest', 'Shoulders', 'Arms', 'Back', 'Abs', 'Legs'
 ];
 
+const SEX_OPTIONS = ['Female', 'Male', 'Prefer not to say'];
+
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+const userState = {
+  profile: {
+    name: 'Jace Calvert',
+    subtitle: 'Short, calm sessions focused on solid form and breathing.',
+    goal: 'Build steady strength and confidence',
+    experience: 'Beginner · Week 3',
+    equipment: 'Adjustable dumbbells + flat bench',
+    height: '',
+    weight: '',
+    sex: '',
+    age: '',
+    location: '',
+    onboardingComplete: false
+  },
+  program: {
+    currentWeek: 3,
+    totalWeeks: 8,
+    nextWorkout: 'Upper Body Reset'
+  },
+  workouts: seedWorkouts()
+};
+
+function seedWorkouts() {
+  const completions = [];
+  const now = new Date();
+  for (let i = 0; i < 5; i++) {
+    completions.push(new Date(now.getTime() - i * MS_PER_DAY).toISOString());
+  }
+  for (let i = 5; i < 18; i++) {
+    completions.push(new Date(now.getTime() - (i + 1) * MS_PER_DAY).toISOString());
+  }
+  return completions;
+}
+
+function escapeHTML(value = '') {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function cleanInput(value, fallback = '') {
+  const trimmed = (value || '').toString().trim();
+  return trimmed.length ? trimmed : fallback;
+}
+
+function sanitizeNumberInput(value, { min = null, max = null } = {}) {
+  const num = parseFloat(value);
+  if (!Number.isFinite(num)) return '';
+  if (min !== null && num < min) return '';
+  if (max !== null && num > max) return '';
+  return num.toString();
+}
+
+function renderSexOptions(fieldName, selectedValue, required = false) {
+  return SEX_OPTIONS.map((option, index) => `
+    <label class="option-chip">
+      <input type="radio" name="${fieldName}" value="${option}" ${selectedValue === option ? 'checked' : ''} ${(required && index === 0) ? 'required' : ''}>
+      <span>${option}</span>
+    </label>
+  `).join('');
+}
+
+function normalizeDay(value) {
+  const date = new Date(value);
+  date.setHours(0, 0, 0, 0);
+  return date.getTime();
+}
+
+function calculateStreak(workouts) {
+  const days = [...new Set(workouts.map(normalizeDay))].sort((a, b) => b - a);
+  if (!days.length) return 0;
+  let streak = 1;
+  for (let i = 1; i < days.length; i++) {
+    if (days[i] === days[i - 1] - MS_PER_DAY) {
+      streak++;
+    } else {
+      break;
+    }
+  }
+  return streak;
+}
+
+function calculateWorkoutStats() {
+  return {
+    total: userState.workouts.length,
+    streak: calculateStreak(userState.workouts)
+  };
+}
+
+function getWeeklyChartHeights() {
+  const heights = [];
+  const today = new Date();
+  for (let offset = 6; offset >= 0; offset--) {
+    const target = new Date(today.getTime() - offset * MS_PER_DAY);
+    target.setHours(0, 0, 0, 0);
+    const count = userState.workouts.filter(entry => normalizeDay(entry) === target.getTime()).length;
+    const normalized = count === 0 ? 6 : Math.min(100, count * 30 + 10);
+    heights.push(normalized);
+  }
+  return heights;
+}
+
+function recordWorkoutCompletion(timestamp = new Date()) {
+  userState.workouts.unshift(new Date(timestamp).toISOString());
+  if (userState.workouts.length > 365) {
+    userState.workouts.length = 365;
+  }
+  const estimatedWeek = Math.ceil(userState.workouts.length / 3);
+  userState.program.currentWeek = Math.min(
+    userState.program.totalWeeks,
+    Math.max(userState.program.currentWeek, estimatedWeek)
+  );
+}
+
 function getRecommendedWeight(exercise, benchMax, squatMax, deadliftMax, percent, noMax) {
   if (noMax) return 'N/A';
   const name = exercise.name.toLowerCase();
@@ -284,6 +405,377 @@ const BASE_STYLES = `
       border: 1px solid var(--border);
       background: var(--panel-light);
     }
+    .onboarding-panel {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+    .onboarding-panel h2 {
+      margin-top: 0;
+      font-size: clamp(2rem, 4vw, 2.6rem);
+    }
+    .onboarding-lede {
+      color: var(--muted);
+      margin: 0 0 24px;
+      line-height: 1.6;
+    }
+    .onboarding-form {
+      display: grid;
+      gap: 16px;
+    }
+    .onboarding-form label {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+    .onboarding-form input,
+    .onboarding-form textarea,
+    .onboarding-form select {
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+      padding: 12px 14px;
+      font-size: 1rem;
+    }
+    .onboarding-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+    .option-chip-fieldset {
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 14px;
+      padding: 10px 16px 16px;
+      margin: 0;
+      min-width: 0;
+    }
+    .option-chip-fieldset legend {
+      font-size: 0.82rem;
+      color: var(--muted);
+      padding: 0 6px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .option-chip-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .option-chip {
+      display: inline-flex;
+      align-items: center;
+      cursor: pointer;
+    }
+    .option-chip input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .option-chip span {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.18);
+      padding: 8px 16px;
+      font-size: 0.95rem;
+      background: rgba(255,255,255,0.05);
+      transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+    }
+    .option-chip input:checked + span {
+      border-color: var(--accent);
+      background: rgba(79,140,255,0.2);
+      color: var(--text);
+      font-weight: 600;
+    }
+    .profile-shell {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    .profile-summary-card {
+      background: linear-gradient(145deg, #ffffff, #f5f7ff);
+      color: #111531;
+      border-radius: 24px;
+      padding: 32px;
+      border: 1px solid rgba(14,23,53,0.08);
+      box-shadow: 0 25px 55px rgba(7,14,40,0.18);
+    }
+    .profile-summary-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+    .profile-eyebrow {
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      font-size: 0.78rem;
+      color: #6f7a9f;
+      margin: 0 0 4px;
+    }
+    .profile-summary-card h2 {
+      margin: 0 0 6px;
+      font-size: clamp(1.8rem, 3vw, 2.4rem);
+    }
+    .profile-summary-subtitle {
+      color: #4b557a;
+      margin: 0;
+      line-height: 1.5;
+    }
+    .profile-pill {
+      padding: 8px 16px;
+      border-radius: 999px;
+      background: rgba(79,140,255,0.15);
+      color: #325fdc;
+      font-weight: 600;
+      border: 1px solid rgba(79,140,255,0.35);
+    }
+    .profile-meta {
+      margin-top: 28px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 18px;
+    }
+    .profile-meta-item {
+      background: rgba(255,255,255,0.9);
+      border-radius: 18px;
+      padding: 16px 18px;
+      border: 1px solid rgba(15,23,42,0.08);
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+    }
+    .profile-meta-item span {
+      display: block;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #7d88b2;
+      margin-bottom: 6px;
+    }
+    .profile-meta-item strong {
+      font-size: 1.05rem;
+      color: #111531;
+      font-weight: 600;
+      line-height: 1.4;
+    }
+    .profile-program-card {
+      background: linear-gradient(135deg, #1d274a, #325fdc 50%, #4f8cff 90%);
+      border-radius: 28px;
+      padding: 34px 32px;
+      color: #f6f8ff;
+      box-shadow: 0 35px 75px rgba(27,37,79,0.55);
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+    .program-label {
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-size: 0.75rem;
+      color: rgba(245,247,255,0.78);
+      margin: 0 0 6px;
+    }
+    .program-week-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .program-week-row h3 {
+      margin: 0;
+      font-size: clamp(2rem, 4vw, 2.6rem);
+    }
+    .program-subtitle {
+      margin: 6px 0 18px;
+      font-size: 1.05rem;
+      color: rgba(246,248,255,0.9);
+    }
+    .program-subtitle span {
+      font-weight: 600;
+      color: #ffffff;
+    }
+    .program-progress {
+      width: 100%;
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.25);
+      overflow: hidden;
+    }
+    .program-progress-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: #3dd598;
+    }
+    .program-start-btn {
+      border: none;
+      border-radius: 18px;
+      padding: 18px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #ffffff;
+      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: 0 20px 40px rgba(13,18,37,0.35);
+    }
+    .program-start-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 24px 46px rgba(13,18,37,0.45);
+    }
+    .profile-progress-card {
+      background: var(--panel-light);
+      border-radius: 22px;
+      padding: 28px 30px;
+      border: 1px solid var(--border);
+      box-shadow: 0 20px 48px rgba(0,0,0,0.35);
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .progress-eyebrow {
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin: 0 0 4px;
+    }
+    .profile-progress-card h3 {
+      margin: 0;
+      font-size: 1.6rem;
+    }
+    .profile-progress-card p {
+      margin: 6px 0 0;
+      color: var(--muted);
+    }
+    .progress-metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 18px;
+    }
+    .progress-metric {
+      background: rgba(255,255,255,0.04);
+      border-radius: 16px;
+      padding: 16px 18px;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+    .progress-metric span {
+      font-size: 0.75rem;
+      letter-spacing: 1px;
+      color: var(--muted);
+      text-transform: uppercase;
+      display: block;
+      margin-bottom: 6px;
+    }
+    .progress-metric strong {
+      font-size: 1.4rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .progress-mini-chart {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      height: 80px;
+    }
+    .progress-mini-chart span {
+      flex: 1;
+      background: rgba(255,255,255,0.18);
+      border-radius: 999px 999px 6px 6px;
+      min-width: 8px;
+    }
+    .profile-settings-card {
+      background: rgba(255,255,255,0.04);
+      border-radius: 18px;
+      padding: 22px 24px;
+      border: 1px dashed rgba(255,255,255,0.2);
+      color: var(--muted);
+    }
+    .profile-settings-card h4 {
+      margin: 0;
+      font-size: 1.15rem;
+      color: var(--text);
+    }
+    .profile-settings-card p {
+      margin: 6px 0 0;
+      color: var(--muted);
+    }
+    .profile-settings-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .settings-link {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 8px 16px;
+      font-size: 0.9rem;
+      color: var(--muted);
+      background: transparent;
+      text-decoration: none;
+      transition: border-color 0.2s ease, color 0.2s ease;
+    }
+    .settings-link:hover {
+      border-color: var(--accent);
+      color: var(--text);
+    }
+    .profile-settings-forms {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .settings-inline-form {
+      background: rgba(0,0,0,0.25);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      display: grid;
+      gap: 12px;
+    }
+    .settings-inline-form label {
+      font-size: 0.85rem;
+      color: var(--muted);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .settings-inline-form input,
+    .settings-inline-form textarea,
+    .settings-inline-form select {
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(0,0,0,0.15);
+      color: var(--text);
+      padding: 10px 12px;
+      font-size: 0.95rem;
+    }
+    .settings-inline-form textarea {
+      min-height: 72px;
+      resize: vertical;
+    }
+    .settings-inline-form button {
+      justify-self: flex-start;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text);
+      padding: 8px 18px;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+    .settings-inline-form button:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .settings-inline-form .option-chip-fieldset {
+      border-color: var(--border);
+      background: rgba(0,0,0,0.15);
+    }
     footer {
       text-align: center;
       color: var(--muted);
@@ -317,6 +809,7 @@ function renderPage(title, mainContent) {
             <nav class="nav-links">
               <a href="/">Planner</a>
               <a href="/dashboard">Dashboard</a>
+              <a href="/profile">Profile</a>
               <a href="#subscribe" class="cta-btn">Subscribe</a>
             </nav>
           </div>
@@ -333,6 +826,9 @@ function renderPage(title, mainContent) {
 }
 
 app.get('/', (req, res) => {
+  if (!userState.profile.onboardingComplete) {
+    return res.redirect('/onboarding');
+  }
   const equipmentOptions = EQUIPMENT_LIST.map(eq =>
     `<label class="option" data-equip="${eq}"><input type="checkbox" name="equipment" value="${eq}"> ${eq}</label>`
   ).join('');
@@ -531,6 +1027,9 @@ app.post('/plan', (req, res) => {
 });
 
 app.get('/dashboard', (req, res) => {
+  if (!userState.profile.onboardingComplete) {
+    return res.redirect('/onboarding');
+  }
   // Placeholder values for now
   const userDuration = '3 weeks'; // Replace with real tracking
   const savedWorkouts = ['Push/Pull/Legs', 'Full Body Beginner', 'Upper Body Blast']; // Replace with real saved workouts
@@ -586,6 +1085,301 @@ app.get('/dashboard', (req, res) => {
   `;
 
   res.send(renderPage('Dashboard - AllAroundAthlete', dashboardContent));
+});
+
+app.get('/onboarding', (req, res) => {
+  const profile = userState.profile;
+  const sexOptionChips = renderSexOptions('sex', profile.sex, true);
+
+  const onboardingContent = `
+    <section class="panel onboarding-panel">
+      <span class="badge">Welcome</span>
+      <h2>Let's get acquainted first</h2>
+      <p class="onboarding-lede">We ask for a few basics so every plan respects your goals, body, and available space. This stays private on your device.</p>
+      <form class="onboarding-form" method="POST" action="/onboarding">
+        <label>
+          Primary goal
+          <textarea name="goal" required placeholder="e.g., Build strength without burning out">${escapeHTML(profile.goal)}</textarea>
+        </label>
+        <div class="onboarding-grid">
+          <label>
+            Height (in)
+            <input type="number" name="height" min="36" max="96" required value="${escapeHTML(profile.height || '')}">
+          </label>
+          <label>
+            Weight (lbs)
+            <input type="number" name="weight" min="70" max="600" required value="${escapeHTML(profile.weight || '')}">
+          </label>
+          <fieldset class="option-chip-fieldset">
+            <legend>Sex</legend>
+            <div class="option-chip-group">
+              ${sexOptionChips}
+            </div>
+          </fieldset>
+          <label>
+            Age
+            <input type="number" name="age" min="13" max="90" required value="${escapeHTML(profile.age || '')}">
+          </label>
+          <label>
+            Location
+            <input type="text" name="location" required value="${escapeHTML(profile.location || '')}" placeholder="City, State">
+          </label>
+        </div>
+        <button class="primary-btn" type="submit">Save and continue</button>
+      </form>
+    </section>
+  `;
+
+  res.send(renderPage('Welcome - AllAroundAthlete', onboardingContent));
+});
+
+app.post('/onboarding', (req, res) => {
+  const { goal, height, weight, sex, age, location } = req.body;
+  const sanitizedHeight = sanitizeNumberInput(height, { min: 36, max: 96 });
+  const sanitizedWeight = sanitizeNumberInput(weight, { min: 70, max: 600 });
+  const sanitizedAge = sanitizeNumberInput(age, { min: 13, max: 90 });
+  const normalizedSex = SEX_OPTIONS.includes(sex) ? sex : userState.profile.sex;
+
+  userState.profile.goal = cleanInput(goal, userState.profile.goal);
+  if (sanitizedHeight) userState.profile.height = sanitizedHeight;
+  if (sanitizedWeight) userState.profile.weight = sanitizedWeight;
+  if (sanitizedAge) userState.profile.age = sanitizedAge;
+  userState.profile.sex = normalizedSex;
+  userState.profile.location = cleanInput(location, userState.profile.location);
+  userState.profile.onboardingComplete = true;
+
+  res.redirect('/profile');
+});
+
+app.get('/profile', (req, res) => {
+  if (!userState.profile.onboardingComplete) {
+    return res.redirect('/onboarding');
+  }
+  const profileUser = userState.profile;
+  const programInfo = userState.program;
+  const stats = calculateWorkoutStats();
+  const programProgress = Math.min(100, Math.round((programInfo.currentWeek / programInfo.totalWeeks) * 100));
+  const weeklyHeights = getWeeklyChartHeights();
+  const weightDisplay = profileUser.weight ? `${escapeHTML(profileUser.weight)} lbs` : 'Not set';
+  const heightDisplay = profileUser.height ? `${escapeHTML(profileUser.height)} in` : 'Not set';
+  const locationDisplay = profileUser.location ? escapeHTML(profileUser.location) : 'Not set';
+  const ageSexParts = [];
+  if (profileUser.age) ageSexParts.push(`${escapeHTML(profileUser.age)} yrs`);
+  if (profileUser.sex) ageSexParts.push(escapeHTML(profileUser.sex));
+  const ageSexDisplay = ageSexParts.length ? ageSexParts.join(' · ') : 'Not set';
+  const profileSexChips = renderSexOptions('sex', profileUser.sex, true);
+
+  const profileContent = `
+    <section class="profile-shell">
+      <div class="profile-summary-card">
+        <div class="profile-summary-top">
+          <div>
+            <p class="profile-eyebrow">Profile</p>
+            <h2>${escapeHTML(profileUser.name)}</h2>
+            <p class="profile-summary-subtitle">${escapeHTML(profileUser.subtitle)}</p>
+          </div>
+          <div class="profile-pill">Beginner Mode</div>
+        </div>
+        <div class="profile-meta">
+          <div class="profile-meta-item">
+            <span>Goal</span>
+            <strong>${escapeHTML(profileUser.goal)}</strong>
+          </div>
+          <div class="profile-meta-item">
+            <span>Experience Level</span>
+            <strong>${escapeHTML(profileUser.experience)}</strong>
+          </div>
+          <div class="profile-meta-item">
+            <span>Equipment</span>
+            <strong>${escapeHTML(profileUser.equipment)}</strong>
+          </div>
+          <div class="profile-meta-item">
+            <span>Weight</span>
+            <strong>${weightDisplay}</strong>
+          </div>
+          <div class="profile-meta-item">
+            <span>Height</span>
+            <strong>${heightDisplay}</strong>
+          </div>
+          <div class="profile-meta-item">
+            <span>Age · Sex</span>
+            <strong>${ageSexDisplay}</strong>
+          </div>
+          <div class="profile-meta-item">
+            <span>Location</span>
+            <strong>${locationDisplay}</strong>
+          </div>
+        </div>
+      </div>
+      <div class="profile-program-card">
+        <div>
+          <p class="program-label">Program</p>
+          <div class="program-week-row">
+            <h3>Week ${programInfo.currentWeek} of ${programInfo.totalWeeks}</h3>
+          </div>
+          <p class="program-subtitle">Next Workout: <span>${escapeHTML(programInfo.nextWorkout)}</span></p>
+          <div class="program-progress">
+            <div class="program-progress-fill" style="width:${programProgress}%;"></div>
+          </div>
+        </div>
+        <form method="POST" action="/profile/start-workout">
+          <button class="program-start-btn" type="submit">Start Today's Workout</button>
+        </form>
+      </div>
+      <div class="profile-progress-card">
+        <div>
+          <p class="progress-eyebrow">Progress</p>
+          <h3>Keeping it gentle and steady</h3>
+          <p>Micro wins add up. Nothing fancy—just a calm snapshot.</p>
+        </div>
+        <div class="progress-metrics">
+          <div class="progress-metric">
+            <span>Workout Streak</span>
+            <strong>${stats.streak} days</strong>
+          </div>
+          <div class="progress-metric">
+            <span>Total Sessions</span>
+            <strong>${stats.total}</strong>
+          </div>
+        </div>
+        <div class="progress-mini-chart">
+          ${weeklyHeights.map(val => `<span style="height:${val}%"></span>`).join('')}
+        </div>
+      </div>
+      <div class="profile-settings-card">
+        <h4>Tune the basics</h4>
+        <p>Quick adjustments keep the plan feeling yours.</p>
+        <div class="profile-settings-actions">
+          <a href="#edit-profile" class="settings-link">Edit Profile</a>
+          <a href="#change-goal" class="settings-link">Change Goal</a>
+          <a href="#change-equipment" class="settings-link">Change Equipment</a>
+        </div>
+      </div>
+      <div class="profile-settings-forms">
+        <form id="edit-profile" class="settings-inline-form" method="POST" action="/profile/update-profile">
+          <label>
+            Display Name
+            <input type="text" name="name" value="${escapeHTML(profileUser.name)}" required>
+          </label>
+          <label>
+            Experience Note
+            <input type="text" name="experience" value="${escapeHTML(profileUser.experience)}" required>
+          </label>
+          <label>
+            Subtitle
+            <textarea name="subtitle" required>${escapeHTML(profileUser.subtitle)}</textarea>
+          </label>
+          <label>
+            Height (in)
+            <input type="number" name="height" min="36" max="96" value="${escapeHTML(profileUser.height || '')}" required>
+          </label>
+          <label>
+            Weight (lbs)
+            <input type="number" name="weight" min="70" max="600" value="${escapeHTML(profileUser.weight || '')}" required>
+          </label>
+          <fieldset class="option-chip-fieldset">
+            <legend>Sex</legend>
+            <div class="option-chip-group">
+              ${profileSexChips}
+            </div>
+          </fieldset>
+          <label>
+            Age
+            <input type="number" name="age" min="13" max="90" value="${escapeHTML(profileUser.age || '')}" required>
+          </label>
+          <label>
+            Location
+            <input type="text" name="location" value="${escapeHTML(profileUser.location || '')}" required>
+          </label>
+          <label>
+            Current Week
+            <input type="number" min="1" max="${programInfo.totalWeeks}" name="current_week" value="${programInfo.currentWeek}" required>
+          </label>
+          <label>
+            Total Weeks
+            <input type="number" min="1" name="total_weeks" value="${programInfo.totalWeeks}" required>
+          </label>
+          <label>
+            Next Workout Name
+            <input type="text" name="next_workout" value="${escapeHTML(programInfo.nextWorkout)}" required>
+          </label>
+          <button type="submit">Save Profile</button>
+        </form>
+        <form id="change-goal" class="settings-inline-form" method="POST" action="/profile/update-goal">
+          <label>
+            Goal statement
+            <textarea name="goal" required>${escapeHTML(profileUser.goal)}</textarea>
+          </label>
+          <button type="submit">Update Goal</button>
+        </form>
+        <form id="change-equipment" class="settings-inline-form" method="POST" action="/profile/update-equipment">
+          <label>
+            Equipment on hand
+            <textarea name="equipment" required>${escapeHTML(profileUser.equipment)}</textarea>
+          </label>
+          <button type="submit">Update Equipment</button>
+        </form>
+      </div>
+    </section>
+  `;
+
+  res.send(renderPage('Profile - AllAroundAthlete', profileContent));
+});
+
+app.post('/profile/start-workout', (req, res) => {
+  recordWorkoutCompletion();
+  res.redirect('/profile');
+});
+
+app.post('/profile/update-profile', (req, res) => {
+  const {
+    name,
+    subtitle,
+    experience,
+    current_week,
+    total_weeks,
+    next_workout,
+    height,
+    weight,
+    age,
+    sex,
+    location
+  } = req.body;
+  userState.profile.name = cleanInput(name, userState.profile.name);
+  userState.profile.subtitle = cleanInput(subtitle, userState.profile.subtitle);
+  userState.profile.experience = cleanInput(experience, userState.profile.experience);
+  userState.program.nextWorkout = cleanInput(next_workout, userState.program.nextWorkout);
+
+  const sanitizedHeight = sanitizeNumberInput(height, { min: 36, max: 96 });
+  const sanitizedWeight = sanitizeNumberInput(weight, { min: 70, max: 600 });
+  const sanitizedAge = sanitizeNumberInput(age, { min: 13, max: 90 });
+  const normalizedSex = SEX_OPTIONS.includes(sex) ? sex : userState.profile.sex;
+  if (sanitizedHeight) userState.profile.height = sanitizedHeight;
+  if (sanitizedWeight) userState.profile.weight = sanitizedWeight;
+  if (sanitizedAge) userState.profile.age = sanitizedAge;
+  userState.profile.sex = normalizedSex;
+  userState.profile.location = cleanInput(location, userState.profile.location);
+  userState.profile.onboardingComplete = true;
+
+  const totalWeeks = Math.max(1, parseInt(total_weeks, 10)) || userState.program.totalWeeks;
+  userState.program.totalWeeks = totalWeeks;
+
+  const currentWeek = Math.max(1, parseInt(current_week, 10)) || userState.program.currentWeek;
+  userState.program.currentWeek = Math.min(currentWeek, userState.program.totalWeeks);
+
+  res.redirect('/profile');
+});
+
+app.post('/profile/update-goal', (req, res) => {
+  const { goal } = req.body;
+  userState.profile.goal = cleanInput(goal, userState.profile.goal);
+  res.redirect('/profile');
+});
+
+app.post('/profile/update-equipment', (req, res) => {
+  const { equipment } = req.body;
+  userState.profile.equipment = cleanInput(equipment, userState.profile.equipment);
+  res.redirect('/profile');
 });
 
 app.listen(PORT, () => {
