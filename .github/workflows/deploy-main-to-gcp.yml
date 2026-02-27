@@ -17,7 +17,7 @@ jobs:
           chmod 700 ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/rotary-phone
           chmod 600 ~/.ssh/rotary-phone
-          ssh-keyscan -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
+          ssh-keyscan -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts        
           chmod 644 ~/.ssh/known_hosts
 
       - name: Deploy over SSH
@@ -44,19 +44,18 @@ jobs:
             pwd
 
             echo "TRYING TO CD INTO APP_DIR:"
-            cd "$APP_DIR" || { echo "FAILED TO CD INTO $APP_DIR"; exit 1;}
+            cd "$APP_DIR" || { echo "FAILED TO CD INTO $APP_DIR"; exit 1;}      
 
             echo "PWD AFTER CD:"
             pwd
 
             echo "LISTING DIRECTORY CONTENTS:"
             ls -la
-            
+
             git pull
             npm ci
-            
+
             pm2 delete "$PM2_NAME" || true
             pm2 start -f app.mjs --name "$PM2_NAME"
             pm2 save
           EOF
-
