@@ -1,3 +1,215 @@
+// =========================
+// MODEL (MongoDB collections + helper functions)
+// =========================
+import { MongoClient, ObjectId } from 'mongodb';
+const MONGODB_URI = process.env.MONGODB_URI;
+const client = new MongoClient(MONGODB_URI, { useUnifiedTopology: true });
+let db;
+async function connectDb() {
+  if (!db) {
+    await client.connect();
+    db = client.db('myDatabase');
+  }
+  return db;
+}
+
+// =========================
+// CONTROLLERS (functions for CRUD)
+// =========================
+const routineController = {
+  async getAll(req, res, next) {
+    try {
+      const db = await connectDb();
+      const routines = await db.collection('routines').find().sort({ createdAt: -1 }).toArray();
+      res.json(routines);
+    } catch (err) { next(err); }
+  },
+  async create(req, res, next) {
+    try {
+      const db = await connectDb();
+      const { name, muscle, equipment, exercises } = req.body;
+      const routine = { name, muscle, equipment, exercises: Array.isArray(exercises) ? exercises : [], createdAt: new Date() };
+      const result = await db.collection('routines').insertOne(routine);
+      res.status(201).json({ ...routine, _id: result.insertedId });
+    } catch (err) { next(err); }
+  },
+  async update(req, res, next) {
+    try {
+      const db = await connectDb();
+      const { id } = req.params;
+      const update = req.body;
+      const result = await db.collection('routines').findOneAndUpdate(
+        { _id: new ObjectId(id) },
+        { $set: update },
+        { returnDocument: 'after' }
+      );
+      if (!result.value) return res.status(404).json({ error: 'Routine not found' });
+      res.json(result.value);
+    } catch (err) { next(err); }
+  },
+  async remove(req, res, next) {
+    try {
+      const db = await connectDb();
+      const { id } = req.params;
+      const result = await db.collection('routines').deleteOne({ _id: new ObjectId(id) });
+      if (!result.deletedCount) return res.status(404).json({ error: 'Routine not found' });
+      res.json({ success: true });
+    } catch (err) { next(err); }
+  }
+};
+
+const exerciseController = {
+  async getAll(req, res, next) {
+    try {
+      const db = await connectDb();
+      const exercises = await db.collection('exercises').find().sort({ name: 1 }).toArray();
+      res.json(exercises);
+    } catch (err) { next(err); }
+  },
+  async create(req, res, next) {
+    try {
+      const db = await connectDb();
+      const { name, muscle, equipment, steps } = req.body;
+      const exercise = { name, muscle, equipment: Array.isArray(equipment) ? equipment : (typeof equipment === 'string' ? equipment.split(',').map(e => e.trim()) : []), steps };
+      const result = await db.collection('exercises').insertOne(exercise);
+      res.status(201).json({ ...exercise, _id: result.insertedId });
+    } catch (err) { next(err); }
+  },
+  async update(req, res, next) {
+    try {
+      const db = await connectDb();
+      const { id } = req.params;
+      const update = req.body;
+      if (typeof update.equipment === 'string') update.equipment = update.equipment.split(',').map(e => e.trim());
+      const result = await db.collection('exercises').findOneAndUpdate(
+        { _id: new ObjectId(id) },
+        { $set: update },
+        { returnDocument: 'after' }
+      );
+      if (!result.value) return res.status(404).json({ error: 'Exercise not found' });
+      res.json(result.value);
+    } catch (err) { next(err); }
+  },
+  async remove(req, res, next) {
+    try {
+      const db = await connectDb();
+      const { id } = req.params;
+      const result = await db.collection('exercises').deleteOne({ _id: new ObjectId(id) });
+      if (!result.deletedCount) return res.status(404).json({ error: 'Exercise not found' });
+      res.json({ success: true });
+    } catch (err) { next(err); }
+  }
+};
+
+// =========================
+// API ROUTES (REST endpoints)
+// =========================
+import bodyParser from 'body-parser';
+app.use(bodyParser.json());
+
+// Routines CRUD
+app.get('/api/routines', routineController.getAll);
+app.post('/api/routines', routineController.create);
+app.put('/api/routines/:id', routineController.update);
+app.delete('/api/routines/:id', routineController.remove);
+
+// Exercises CRUD
+app.get('/api/exercises', exerciseController.getAll);
+app.post('/api/exercises', exerciseController.create);
+app.put('/api/exercises/:id', exerciseController.update);
+app.delete('/api/exercises/:id', exerciseController.remove);
+
+// =========================
+// ERROR HANDLING
+// =========================
+app.get('/health', (req, res) => res.json({ status: 'ok' }));
+
+app.use((req, res, next) => {
+  res.status(404).json({ error: 'Not found' });
+});
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(err.status || 500).json({ error: err.message || 'Server error' });
+});
+
+// =========================
+// SPA AJAX FRONT-END (public/scripts/app.js)
+// =========================
+import fs from 'fs';
+import path from 'path';
+const scriptPath = path.join(process.cwd(), 'public', 'scripts', 'app.js');
+if (!fs.existsSync(scriptPath)) {
+  app.get('/scripts/app.js', (req, res) => {
+    res.type('application/javascript').send(`
+      $(function() {
+        // --- Routines ---
+        function renderHistory(routines) {
+          const $list = $("#history-list");
+          if (!$list.length) return;
+          if (!routines.length) {
+            $list.html("<p style=\"color:var(--muted);\">No saved plans yet. Generate one to see it here.</p>");
+            return;
+          }
+          $list.html(routines.map(function(r) {
+            return '<li data-id="' + r._id + '"><strong>' + r.name + '</strong> (' + r.muscle + ', ' + r.equipment + ') <button class="edit-btn">Edit</button> <button class="delete-btn">Delete</button></li>';
+          }).join(""));
+        }
+        function loadRoutines() {
+          $.get("/api/routines", renderHistory);
+        }
+        $("#planner-form").on("submit", function(e) {
+          e.preventDefault();
+          const data = $(this).serializeArray().reduce(function(acc, cur) { acc[cur.name]=cur.value; return acc; }, {});
+          $.ajax({
+            url: "/api/routines",
+            method: "POST",
+            contentType: "application/json",
+            data: JSON.stringify(data),
+            success: loadRoutines
+          });
+        });
+        $("#history-list").on("click", ".delete-btn", function() {
+          const id = $(this).closest("li").data("id");
+          $.ajax({ url: "/api/routines/" + id, method: "DELETE", success: loadRoutines });
+        });
+        // --- Exercises ---
+        function renderExercises(exercises) {
+          const $list = $("#exercise-list");
+          if (!$list.length) return;
+          if (!exercises.length) {
+            $list.html("<p style=\"color:var(--muted);\">No exercises found.</p>");
+            return;
+          }
+          $list.html(exercises.map(function(e) {
+            return '<li data-id="' + e._id + '"><strong>' + e.name + '</strong> (' + e.muscle + ', ' + (Array.isArray(e.equipment) ? e.equipment.join(', ') : e.equipment) + ') <button class="edit-ex-btn">Edit</button> <button class="delete-ex-btn">Delete</button></li>';
+          }).join(""));
+        }
+        function loadExercises() {
+          $.get("/api/exercises", renderExercises);
+        }
+        $("#exercise-form").on("submit", function(e) {
+          e.preventDefault();
+          const data = $(this).serializeArray().reduce(function(acc, cur) { acc[cur.name]=cur.value; return acc; }, {});
+          if (data.equipment) data.equipment = data.equipment.split(",").map(function(s){return s.trim();});
+          $.ajax({
+            url: "/api/exercises",
+            method: "POST",
+            contentType: "application/json",
+            data: JSON.stringify(data),
+            success: loadExercises
+          });
+        });
+        $("#exercise-list").on("click", ".delete-ex-btn", function() {
+          const id = $(this).closest("li").data("id");
+          $.ajax({ url: "/api/exercises/" + id, method: "DELETE", success: loadExercises });
+        });
+        // Edit logic for both can be added here
+        loadRoutines();
+        loadExercises();
+      });
+    `);
+  });
+}
 import express from 'express';
 
 const app = express();
@@ -437,86 +649,7 @@ app.listen(PORT, () => {
 // MODEL (Mongoose, MongoDB)
 // =========================
 
-// =========================
-// MODEL (in-memory arrays + helper functions)
-// =========================
-let routines = [];
-let customExercises = [];
-
-function generateId() {
-  return Math.random().toString(36).substr(2, 9) + Date.now();
-}
-
-// =========================
-// CONTROLLERS (functions for CRUD)
-// =========================
-const routineController = {
-  getAll(req, res) {
-    res.json(routines.slice().sort((a, b) => b.createdAt - a.createdAt));
-  },
-  create(req, res) {
-    const { name, muscle, equipment, exercises } = req.body;
-    const routine = {
-      id: generateId(),
-      name,
-      muscle,
-      equipment,
-      exercises: Array.isArray(exercises) ? exercises : [],
-      createdAt: Date.now()
-    };
-    routines.push(routine);
-    res.status(201).json(routine);
-  },
-  update(req, res) {
-    const { id } = req.params;
-    const idx = routines.findIndex(r => r.id == id);
-    if (idx === -1) return res.status(404).json({ error: 'Routine not found' });
-    const updated = { ...routines[idx], ...req.body };
-    routines[idx] = updated;
-    res.json(updated);
-  },
-  remove(req, res) {
-    const { id } = req.params;
-    const idx = routines.findIndex(r => r.id == id);
-    if (idx === -1) return res.status(404).json({ error: 'Routine not found' });
-    routines.splice(idx, 1);
-    res.json({ success: true });
-  }
-};
-
-const exerciseController = {
-  getAll(req, res) {
-    res.json(customExercises.slice().sort((a, b) => a.name.localeCompare(b.name)));
-  },
-  create(req, res) {
-    const { name, muscle, equipment, steps } = req.body;
-    const exercise = {
-      id: generateId(),
-      name,
-      muscle,
-      equipment: Array.isArray(equipment) ? equipment : (typeof equipment === 'string' ? equipment.split(',').map(e => e.trim()) : []),
-      steps
-    };
-    customExercises.push(exercise);
-    res.status(201).json(exercise);
-  },
-  update(req, res) {
-    const { id } = req.params;
-    const idx = customExercises.findIndex(e => e.id == id);
-    if (idx === -1) return res.status(404).json({ error: 'Exercise not found' });
-    const updated = { ...customExercises[idx], ...req.body };
-    if (typeof updated.equipment === 'string') updated.equipment = updated.equipment.split(',').map(e => e.trim());
-    customExercises[idx] = updated;
-    res.json(updated);
-  },
-  remove(req, res) {
-    const { id } = req.params;
-    const idx = customExercises.findIndex(e => e.id == id);
-    if (idx === -1) return res.status(404).json({ error: 'Exercise not found' });
-    customExercises.splice(idx, 1);
-    res.json({ success: true });
-  }
-};
+// ...existing code...
 
 // =========================
 // API ROUTES (REST endpoints)
@@ -526,115 +659,7 @@ app.use(bodyParser.json());
 
 // Routines CRUD
 app.get('/api/routines', routineController.getAll);
-app.post('/api/routines', (req, res) => {
-  // If exercises not provided, auto-generate from EXERCISES
-  let { name, muscle, equipment, exercises } = req.body;
-  if (!exercises || !Array.isArray(exercises) || exercises.length === 0) {
-    exercises = EXERCISES.filter(e => e.muscle === muscle && e.equipment.includes(equipment)).slice(0, 3);
-  }
-  req.body.exercises = exercises;
-  routineController.create(req, res);
-});
-app.put('/api/routines/:id', routineController.update);
-app.delete('/api/routines/:id', routineController.remove);
 
-// Exercises CRUD
-app.get('/api/exercises', exerciseController.getAll);
-app.post('/api/exercises', exerciseController.create);
-app.put('/api/exercises/:id', exerciseController.update);
-app.delete('/api/exercises/:id', exerciseController.remove);
-
-// =========================
-// ERROR HANDLING
-// =========================
-app.get('/health', (req, res) => res.json({ status: 'ok' }));
-
-app.use((req, res, next) => {
-  res.status(404).json({ error: 'Not found' });
-});
-app.use((err, req, res, next) => {
-  console.error(err);
-  res.status(err.status || 500).json({ error: err.message || 'Server error' });
-});
-
-// =========================
-// SPA AJAX FRONT-END (public/scripts/app.js)
-// =========================
-import fs from 'fs';
-import path from 'path';
-const scriptPath = path.join(process.cwd(), 'public', 'scripts', 'app.js');
-if (!fs.existsSync(scriptPath)) {
-  app.get('/scripts/app.js', (req, res) => {
-    res.type('application/javascript').send(`
-      $(function() {
-        // --- Routines ---
-        function renderHistory(routines) {
-          const $list = $("#history-list");
-          if (!$list.length) return;
-          if (!routines.length) {
-            $list.html("<p style=\"color:var(--muted);\">No saved plans yet. Generate one to see it here.</p>");
-            return;
-          }
-          $list.html(routines.map(function(r) {
-            return '<li data-id="' + r.id + '"><strong>' + r.name + '</strong> (' + r.muscle + ', ' + r.equipment + ') <button class="edit-btn">Edit</button> <button class="delete-btn">Delete</button></li>';
-          }).join(""));
-        }
-        function loadRoutines() {
-          $.get("/api/routines", renderHistory);
-        }
-        $("#planner-form").on("submit", function(e) {
-          e.preventDefault();
-          const data = $(this).serializeArray().reduce(function(acc, cur) { acc[cur.name]=cur.value; return acc; }, {});
-          $.ajax({
-            url: "/api/routines",
-            method: "POST",
-            contentType: "application/json",
-            data: JSON.stringify(data),
-            success: loadRoutines
-          });
-        });
-        $("#history-list").on("click", ".delete-btn", function() {
-          const id = $(this).closest("li").data("id");
-          $.ajax({ url: "/api/routines/" + id, method: "DELETE", success: loadRoutines });
-        });
-        // --- Exercises ---
-        function renderExercises(exercises) {
-          const $list = $("#exercise-list");
-          if (!$list.length) return;
-          if (!exercises.length) {
-            $list.html("<p style=\"color:var(--muted);\">No exercises found.</p>");
-            return;
-          }
-          $list.html(exercises.map(function(e) {
-            return '<li data-id="' + e.id + '"><strong>' + e.name + '</strong> (' + e.muscle + ', ' + e.equipment.join(', ') + ') <button class="edit-ex-btn">Edit</button> <button class="delete-ex-btn">Delete</button></li>';
-          }).join(""));
-        }
-        function loadExercises() {
-          $.get("/api/exercises", renderExercises);
-        }
-        $("#exercise-form").on("submit", function(e) {
-          e.preventDefault();
-          const data = $(this).serializeArray().reduce(function(acc, cur) { acc[cur.name]=cur.value; return acc; }, {});
-          if (data.equipment) data.equipment = data.equipment.split(",").map(function(s){return s.trim();});
-          $.ajax({
-            url: "/api/exercises",
-            method: "POST",
-            contentType: "application/json",
-            data: JSON.stringify(data),
-            success: loadExercises
-          });
-        });
-        $("#exercise-list").on("click", ".delete-ex-btn", function() {
-          const id = $(this).closest("li").data("id");
-          $.ajax({ url: "/api/exercises/" + id, method: "DELETE", success: loadExercises });
-        });
-        // Edit logic for both can be added here
-        loadRoutines();
-        loadExercises();
-      });
-    `);
-  });
-}
 
 
 // =========================
