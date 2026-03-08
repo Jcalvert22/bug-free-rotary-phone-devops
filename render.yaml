@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: all-around-athlete
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node app.mjs
+    envVars:
+      - key: MONGODB_URI
+        sync: false
+      - key: PORT
+        value: 3000

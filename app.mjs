@@ -433,3 +433,159 @@ app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
 
+// =========================
+// MODEL (Mongoose, MongoDB)
+// =========================
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
+dotenv.config();
+
+const routineSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  muscle: { type: String, required: true },
+  equipment: { type: String, required: true },
+  exercises: [
+    {
+      name: String,
+      muscle: String,
+      equipment: [String],
+      steps: String
+    }
+  ],
+  createdAt: { type: Date, default: Date.now }
+});
+const Routine = mongoose.models.Routine || mongoose.model('Routine', routineSchema);
+
+mongoose.connect(process.env.MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+}).then(() => console.log('MongoDB connected')).catch(err => console.error('MongoDB error:', err));
+
+// =========================
+// CONTROLLER
+// =========================
+const routineController = {
+  async getAll(req, res, next) {
+    try {
+      const routines = await Routine.find().sort({ createdAt: -1 });
+      res.json(routines);
+    } catch (err) { next(err); }
+  },
+  async create(req, res, next) {
+    try {
+      const { name, muscle, equipment, exercises } = req.body;
+      const routine = new Routine({ name, muscle, equipment, exercises });
+      await routine.save();
+      res.status(201).json(routine);
+    } catch (err) { next(err); }
+  },
+  async update(req, res, next) {
+    try {
+      const { id } = req.params;
+      const updated = await Routine.findByIdAndUpdate(id, req.body, { new: true });
+      if (!updated) return res.status(404).json({ error: 'Routine not found' });
+      res.json(updated);
+    } catch (err) { next(err); }
+  },
+  async remove(req, res, next) {
+    try {
+      const { id } = req.params;
+      const deleted = await Routine.findByIdAndDelete(id);
+      if (!deleted) return res.status(404).json({ error: 'Routine not found' });
+      res.json({ success: true });
+    } catch (err) { next(err); }
+  }
+};
+
+// =========================
+// VIEW HELPERS (for API)
+// =========================
+function buildExercises(muscle, equipment) {
+  return EXERCISES.filter(e => e.muscle === muscle && e.equipment.includes(equipment)).slice(0, 3);
+}
+
+// =========================
+// API ENDPOINTS
+// =========================
+import bodyParser from 'body-parser';
+app.use(bodyParser.json());
+
+app.get('/api/routines', routineController.getAll);
+app.post('/api/routines', async (req, res, next) => {
+  try {
+    // If exercises not provided, auto-generate
+    let { name, muscle, equipment, exercises } = req.body;
+    if (!exercises || !Array.isArray(exercises) || exercises.length === 0) {
+      exercises = buildExercises(muscle, equipment);
+    }
+    req.body.exercises = exercises;
+    await routineController.create(req, res, next);
+  } catch (err) { next(err); }
+});
+app.put('/api/routines/:id', routineController.update);
+app.delete('/api/routines/:id', routineController.remove);
+
+// Health check
+app.get('/health', (req, res) => res.json({ status: 'ok' }));
+
+// =========================
+// ERROR HANDLING
+// =========================
+app.use((req, res, next) => {
+  res.status(404).json({ error: 'Not found' });
+});
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(err.status || 500).json({ error: err.message || 'Server error' });
+});
+
+// =========================
+// SPA AJAX FRONT-END (public/scripts/app.js)
+// =========================
+// If /public/scripts/app.js exists, skip. Otherwise, serve it inline for demo:
+import fs from 'fs';
+import path from 'path';
+const scriptPath = path.join(process.cwd(), 'public', 'scripts', 'app.js');
+if (!fs.existsSync(scriptPath)) {
+  app.get('/scripts/app.js', (req, res) => {
+    res.type('application/javascript').send(
+      '$(function() {' +
+      '  function renderHistory(routines) {' +
+      '    const $list = $("#history-list");' +
+      '    if (!routines.length) {' +
+      '      $list.html("<p style=\\"color:var(--muted);\\">No saved plans yet. Generate one to see it here.</p>");' +
+      '      return;' +
+      '    }' +
+      '    $list.html(routines.map(function(r) {' +
+      '      return "<li data-id=\\"" + r._id + "\\">' +
+      '<strong>" + r.name + "</strong> (" + r.muscle + ", " + r.equipment + ")' +
+      '<button class=\\"edit-btn\\">Edit</button>' +
+      '<button class=\\"delete-btn\\">Delete</button>' +
+      '</li>";' +
+      '    }).join(""));' +
+      '  }' +
+      '  function loadRoutines() {' +
+      '    $.get("/api/routines", renderHistory);' +
+      '  }' +
+      '  $("#planner-form").on("submit", function(e) {' +
+      '    e.preventDefault();' +
+      '    const data = $(this).serializeArray().reduce(function(acc, cur) { acc[cur.name]=cur.value; return acc; }, {});' +
+      '    $.ajax({' +
+      '      url: "/api/routines",' +
+      '      method: "POST",' +
+      '      contentType: "application/json",' +
+      '      data: JSON.stringify(data),' +
+      '      success: loadRoutines' +
+      '    });' +
+      '  });' +
+      '  $("#history-list").on("click", ".delete-btn", function() {' +
+      '    const id = $(this).closest("li").data("id");' +
+      '    $.ajax({ url: "/api/routines/" + id, method: "DELETE", success: loadRoutines });' +
+      '  });' +
+      '  // Edit logic can be added here' +
+      '  loadRoutines();' +
+      '});'
+    );
+  });
+}
+
