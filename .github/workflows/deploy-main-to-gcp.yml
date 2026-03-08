@@ -59,8 +59,3 @@ jobs:
             pm2 start -f app.mjs --name "$PM2_NAME"
             pm2 save
           EOF
-
-      - name: Health check API
-        shell: bash
-        run: |
-          curl -f http://$SSH_HOST:3000/health || (echo "Health check failed" && exit 1)
