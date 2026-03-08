@@ -237,8 +237,8 @@ function renderLayout(title, mainContent) {
         <header class="site-header">
           <div class="header-inner">
             <div class="brand">
-              <img src="/images/allaround-athlete-logo.png" alt="AllAroundAthlete logo">
-              <span>All-Around Athlete</span>
+              <img src="/images/gymtravel-logo.png" alt="GymTravel logo">
+              <span>GymTravel</span>
             </div>
             <nav class="nav-links">
               <a href="/">Home</a>
@@ -313,7 +313,7 @@ app.get('/', (req, res) => {
     </section>
   `;
 
-  res.send(renderLayout('All-Around Athlete · Simple Planner', body));
+  res.send(renderLayout('GymTravel · Simple Planner', body));
 });
 
 app.get('/subscribe', (req, res) => {
@@ -331,7 +331,7 @@ app.get('/subscribe', (req, res) => {
     </section>
   `;
 
-  res.send(renderLayout('Subscribe · All-Around Athlete', body));
+  res.send(renderLayout('Subscribe · GymTravel', body));
 });
 
 app.post('/subscribe', (req, res) => {
@@ -379,7 +379,7 @@ app.get('/planner', (req, res) => {
     </section>
   `;
 
-  res.send(renderLayout('Planner · All-Around Athlete', body));
+  res.send(renderLayout('Planner · GymTravel', body));
 });
 
 app.post('/planner', (req, res) => {
@@ -426,7 +426,7 @@ app.post('/planner', (req, res) => {
     </section>
   `;
 
-  res.send(renderLayout('Your Plan · All-Around Athlete', body));
+  res.send(renderLayout('Your Plan · GymTravel', body));
 });
 
 app.listen(PORT, () => {
