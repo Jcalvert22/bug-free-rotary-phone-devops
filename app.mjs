@@ -437,29 +437,23 @@ app.listen(PORT, () => {
 // MODEL (Mongoose, MongoDB)
 // =========================
 import mongoose from 'mongoose';
-import dotenv from 'dotenv';
-dotenv.config();
 
+const exerciseSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  muscle: { type: String, required: true },
+  equipment: { type: [String], required: true },
+  steps: { type: String, required: true }
+});
 const routineSchema = new mongoose.Schema({
   name: { type: String, required: true },
   muscle: { type: String, required: true },
   equipment: { type: String, required: true },
-  exercises: [
-    {
-      name: String,
-      muscle: String,
-      equipment: [String],
-      steps: String
-    }
-  ],
+  exercises: [exerciseSchema],
   createdAt: { type: Date, default: Date.now }
 });
+const Exercise = mongoose.models.Exercise || mongoose.model('Exercise', exerciseSchema);
 const Routine = mongoose.models.Routine || mongoose.model('Routine', routineSchema);
 
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-}).then(() => console.log('MongoDB connected')).catch(err => console.error('MongoDB error:', err));
 
 // =========================
 // CONTROLLER
@@ -497,6 +491,39 @@ const routineController = {
   }
 };
 
+const exerciseController = {
+  async getAll(req, res, next) {
+    try {
+      const exercises = await Exercise.find().sort({ name: 1 });
+      res.json(exercises);
+    } catch (err) { next(err); }
+  },
+  async create(req, res, next) {
+    try {
+      const { name, muscle, equipment, steps } = req.body;
+      const exercise = new Exercise({ name, muscle, equipment, steps });
+      await exercise.save();
+      res.status(201).json(exercise);
+    } catch (err) { next(err); }
+  },
+  async update(req, res, next) {
+    try {
+      const { id } = req.params;
+      const updated = await Exercise.findByIdAndUpdate(id, req.body, { new: true });
+      if (!updated) return res.status(404).json({ error: 'Exercise not found' });
+      res.json(updated);
+    } catch (err) { next(err); }
+  },
+  async remove(req, res, next) {
+    try {
+      const { id } = req.params;
+      const deleted = await Exercise.findByIdAndDelete(id);
+      if (!deleted) return res.status(404).json({ error: 'Exercise not found' });
+      res.json({ success: true });
+    } catch (err) { next(err); }
+  }
+};
+
 // =========================
 // VIEW HELPERS (for API)
 // =========================
@@ -510,6 +537,7 @@ function buildExercises(muscle, equipment) {
 import bodyParser from 'body-parser';
 app.use(bodyParser.json());
 
+// Routines CRUD
 app.get('/api/routines', routineController.getAll);
 app.post('/api/routines', async (req, res, next) => {
   try {
@@ -524,6 +552,12 @@ app.post('/api/routines', async (req, res, next) => {
 });
 app.put('/api/routines/:id', routineController.update);
 app.delete('/api/routines/:id', routineController.remove);
+
+// Exercises CRUD
+app.get('/api/exercises', exerciseController.getAll);
+app.post('/api/exercises', exerciseController.create);
+app.put('/api/exercises/:id', exerciseController.update);
+app.delete('/api/exercises/:id', exerciseController.remove);
 
 // Health check
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
@@ -550,6 +584,7 @@ if (!fs.existsSync(scriptPath)) {
   app.get('/scripts/app.js', (req, res) => {
     res.type('application/javascript').send(
       '$(function() {' +
+      '  // --- Routines ---' +
       '  function renderHistory(routines) {' +
       '    const $list = $("#history-list");' +
       '    if (!routines.length) {' +
@@ -582,8 +617,44 @@ if (!fs.existsSync(scriptPath)) {
       '    const id = $(this).closest("li").data("id");' +
       '    $.ajax({ url: "/api/routines/" + id, method: "DELETE", success: loadRoutines });' +
       '  });' +
-      '  // Edit logic can be added here' +
+      '  // --- Exercises ---' +
+      '  function renderExercises(exercises) {' +
+      '    const $list = $("#exercise-list");' +
+      '    if (!$list.length) return;' +
+      '    if (!exercises.length) {' +
+      '      $list.html("<p style=\\"color:var(--muted);\\">No exercises found.</p>");' +
+      '      return;' +
+      '    }' +
+      '    $list.html(exercises.map(function(e) {' +
+      '      return "<li data-id=\\"" + e._id + "\\">' +
+      '<strong>" + e.name + "</strong> (" + e.muscle + ", " + e.equipment.join(", ") + ")' +
+      '<button class=\\"edit-ex-btn\\">Edit</button>' +
+      '<button class=\\"delete-ex-btn\\">Delete</button>' +
+      '</li>";' +
+      '    }).join(""));' +
+      '  }' +
+      '  function loadExercises() {' +
+      '    $.get("/api/exercises", renderExercises);' +
+      '  }' +
+      '  $("#exercise-form").on("submit", function(e) {' +
+      '    e.preventDefault();' +
+      '    const data = $(this).serializeArray().reduce(function(acc, cur) { acc[cur.name]=cur.value; return acc; }, {});' +
+      '    if (data.equipment) data.equipment = data.equipment.split(",").map(function(s){return s.trim();});' +
+      '    $.ajax({' +
+      '      url: "/api/exercises",' +
+      '      method: "POST",' +
+      '      contentType: "application/json",' +
+      '      data: JSON.stringify(data),' +
+      '      success: loadExercises' +
+      '    });' +
+      '  });' +
+      '  $("#exercise-list").on("click", ".delete-ex-btn", function() {' +
+      '    const id = $(this).closest("li").data("id");' +
+      '    $.ajax({ url: "/api/exercises/" + id, method: "DELETE", success: loadExercises });' +
+      '  });' +
+      '  // Edit logic for both can be added here' +
       '  loadRoutines();' +
+      '  loadExercises();' +
       '});'
     );
   });
