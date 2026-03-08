@@ -237,7 +237,7 @@ function renderLayout(title, mainContent) {
         <header class="site-header">
           <div class="header-inner">
             <div class="brand">
-              <img src="/images/gymtravel-logo.png" alt="GymTravel logo">
+              <img src="/images/allaround-athlete-logo.png" alt="GymTravel logo">
               <span>GymTravel</span>
             </div>
             <nav class="nav-links">
