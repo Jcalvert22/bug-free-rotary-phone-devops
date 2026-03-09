@@ -287,6 +287,55 @@ function renderLayout(title, mainContent) {
         <footer>
           © ${new Date().getFullYear()} · Class-demo build
         </footer>
+        <script>
+        // --- SIMPLE CRUD FOR SAVED WORKOUTS ---
+        let lastGeneratedWorkout = null;
+        function showSaveButton(workout) {
+          lastGeneratedWorkout = workout;
+          var btn = document.getElementById('saveWorkoutBtn');
+          if (btn) btn.style.display = 'block';
+        }
+        function saveWorkout() {
+          if (!lastGeneratedWorkout || !lastGeneratedWorkout.exercises) return;
+          fetch('/api/workouts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ exercises: lastGeneratedWorkout.exercises })
+          })
+          .then(res => res.json())
+          .then(() => {
+            document.getElementById('saveWorkoutBtn').style.display = 'none';
+            loadSavedWorkouts();
+          });
+        }
+        function loadSavedWorkouts() {
+          fetch('/api/workouts')
+            .then(res => res.json())
+            .then(renderSavedWorkouts);
+        }
+        function deleteWorkout(id) {
+          fetch('/api/workouts/' + encodeURIComponent(id), { method: 'DELETE' })
+            .then(() => loadSavedWorkouts());
+        }
+        function renderSavedWorkouts(list) {
+          var ul = document.getElementById('savedWorkoutsList');
+          if (!ul) return;
+          if (!list || !list.length) {
+            ul.innerHTML = '<li style="color:#888;">No saved workouts.</li>';
+            return;
+          }
+          ul.innerHTML = list.map(function(w, i) {
+            // Use single quotes for onclick and escape properly
+            return '<li style="margin-bottom:10px;">Workout #' + (i+1) + ' &mdash; ' + w.exercises.length + ' exercises <button onclick="deleteWorkout(\'' + w.id + '\')" style="margin-left:12px;">Delete</button></li>';
+          }).join('');
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+          var saveBtn = document.getElementById('saveWorkoutBtn');
+          if (saveBtn) saveBtn.onclick = saveWorkout;
+          loadSavedWorkouts();
+        });
+        // --- END SIMPLE CRUD ---
+        </script>
       </body>
     </html>
   `;
@@ -333,7 +382,6 @@ app.get('/', (req, res) => {
       </div>
     </section>
     <!-- Modal for Generate Workout -->
-    <button id="save-workout-btn" style="display:none;">Save Workout</button>
     <div id="generateWorkoutModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
       <div style="background:#fff; color:#111; border-radius:12px; padding:32px 28px; max-width:420px; margin:auto; position:relative; text-align:left; box-shadow:0 4px 24px rgba(0,0,0,0.13);">
         <h2 style="color:#111; font-size:1.35rem; font-weight:700; margin:0 0 18px 0; text-align:left; letter-spacing:0.01em;">Setup Your Workout</h2>
@@ -357,6 +405,11 @@ app.get('/', (req, res) => {
       </div>
     </div>
     <div id="generatedWorkout"></div>
+    <button id="saveWorkoutBtn" style="display:none; margin:18px 0 0 0;">Save Workout</button>
+    <section id="savedWorkoutsSection" style="margin-top:32px;">
+      <h2>Saved Workouts</h2>
+      <ul id="savedWorkoutsList" style="list-style:none; padding:0; margin:0;"></ul>
+    </section>
     <section id="history" class="panel">
       <h2 style="margin-top:0;">Recent workouts</h2>
       <p style="color:var(--muted);">We keep the last five titles so you can show classmates what you generated.</p>
@@ -378,6 +431,7 @@ app.get('/', (req, res) => {
       container.innerHTML = '';
       if (!workout || !workout.exercises || !workout.exercises.length) {
         container.innerHTML = '<p>No workout generated.</p>';
+        document.getElementById('saveWorkoutBtn').style.display = 'none';
         return;
       }
       const html = workout.exercises.map(function(ex) {
@@ -388,6 +442,7 @@ app.get('/', (req, res) => {
         + '</article>';
       }).join('');
       container.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;width:100%;gap:0;">' + html + '</div>';
+      showSaveButton(workout);
     }
     document.addEventListener('DOMContentLoaded', function() {
       var openBtn = document.getElementById('generateWorkoutMainBtn');
@@ -415,7 +470,6 @@ app.get('/', (req, res) => {
         };
       }
     });
-    </script>
   `;
 
   res.send(renderLayout('GymTravel · Simple Planner', body));
