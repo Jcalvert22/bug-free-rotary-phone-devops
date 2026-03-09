@@ -2,7 +2,8 @@
 const collections = {
   items: [],
   routines: [],
-  exercises: []
+  exercises: [],
+  workouts: []
 };
 
 // Generic CRUD helper functions
@@ -389,11 +390,10 @@ function renderLayout(title, mainContent) {
             }
             if (saveBtn) saveBtn.onclick = saveWorkout;
           }
-          document.addEventListener('DOMContentLoaded', function() {
-            setupEventListeners();
-            loadSavedWorkouts();
-            hideSaveButton();
-          });
+          // Script is at bottom of body — DOM is already ready, no need to wait
+          setupEventListeners();
+          loadSavedWorkouts();
+          hideSaveButton();
           // Expose for inline button delete
           window.deleteWorkout = deleteWorkout;
         })();
@@ -600,15 +600,6 @@ app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
 
-//
-let routines = [];
-let customExercises = [];
-
-function generateId() {
-  return Math.random().toString(36).substr(2, 9) + Date.now();
-}
-
-//
 const routineController = {
   getAll(req, res) {
     res.json(getAllItems("routines"));
@@ -653,7 +644,6 @@ const exerciseController = {
   }
 };
 
-//
 app.use(express.json());
 
 app.get('/api/routines', routineController.getAll);
@@ -674,40 +664,21 @@ app.post('/api/exercises', exerciseController.create);
 app.put('/api/exercises/:id', exerciseController.update);
 app.delete('/api/exercises/:id', exerciseController.remove);
 
-//
+app.get('/api/workouts', (req, res) => {
+  res.json(getAllItems('workouts'));
+});
+app.post('/api/workouts', (req, res) => {
+  res.status(201).json(createItem('workouts', req.body));
+});
+app.delete('/api/workouts/:id', (req, res) => {
+  const success = deleteItem('workouts', req.params.id);
+  if (!success) return res.status(404).json({ error: 'Workout not found' });
+  res.json({ success: true });
+});
+
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 
-app.use((req, res, next) => {
-  res.status(404).json({ error: 'Not found' });
-});
-app.use((err, req, res, next) => {
-  console.error(err);
-  res.status(err.status || 500).json({ error: err.message || 'Server error' });
-});
-
-//
-//
-
-
-// =========================
-// ...existing code...
-
-// =========================
-// VIEW HELPERS (for API)
-// =========================
-function buildExercises(muscle, equipment) {
-  return EXERCISES.filter(e => e.muscle === muscle && e.equipment.includes(equipment)).slice(0, 3);
-}
-
-// =========================
-// API ENDPOINTS
-// =========================
-// ...existing code...
-
-// =========================
-// ERROR HANDLING
-// =========================
-app.use((req, res, next) => {
+app.use((_req, res) => {
   res.status(404).json({ error: 'Not found' });
 });
 app.use((err, req, res, next) => {
