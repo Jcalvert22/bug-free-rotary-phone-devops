@@ -288,11 +288,43 @@ function renderLayout(title, mainContent) {
           © ${new Date().getFullYear()} · Class-demo build
         </footer>
         <script>
-        // --- SIMPLE CRUD FOR SAVED WORKOUTS ---
+        // --- SPA Modal, Workout, and Saved Workouts Logic ---
         let lastGeneratedWorkout = null;
-        function showSaveButton(workout) {
+        function showSaveButton() {
           var btn = document.getElementById('saveWorkoutBtn');
           if (btn) btn.style.display = 'block';
+        }
+        function hideSaveButton() {
+          var btn = document.getElementById('saveWorkoutBtn');
+          if (btn) btn.style.display = 'none';
+        }
+        function generateWorkout(muscles, equipment) {
+          const all = ${JSON.stringify(EXERCISES)};
+          let filtered = all.filter(e =>
+            (!muscles.length || muscles.includes(e.muscle)) &&
+            (!equipment.length || e.equipment.some(eq => equipment.includes(eq)))
+          );
+          return { exercises: filtered.slice(0, 3) };
+        }
+        function renderWorkout(workout) {
+          var container = document.getElementById('generatedWorkout');
+          container.innerHTML = '';
+          if (!workout || !workout.exercises || !workout.exercises.length) {
+            container.innerHTML = '<p>No workout generated.</p>';
+            hideSaveButton();
+            lastGeneratedWorkout = null;
+            return;
+          }
+          const html = workout.exercises.map(function(ex) {
+            return '<article class="exercise-card" style="background:#fff;border:1px solid #bbb;border-radius:18px;padding:20px 32px;margin-bottom:16px;box-shadow:0 4px 16px rgba(0,0,0,0.10);max-width:700px;min-width:320px;width:95vw;margin-left:auto;margin-right:auto;">'
+              + '<h3 style="margin:0 0 8px;font-size:1.08rem;color:#111;font-weight:700;text-align:left;">' + ex.name + '</h3>'
+              + '<div style="margin-bottom:4px;font-size:0.97rem;color:#111;text-align:left;"><strong>Muscle:</strong> ' + ex.muscle + ' &nbsp; <strong>Equipment:</strong> ' + (Array.isArray(ex.equipment) ? ex.equipment.join(', ') : ex.equipment) + '</div>'
+              + '<div style="font-size:0.96rem;line-height:1.35;color:#111;margin-top:2px;text-align:left;">' + ex.steps + '</div>'
+            + '</article>';
+          }).join('');
+          container.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;width:100%;gap:0;">' + html + '</div>';
+          lastGeneratedWorkout = workout;
+          showSaveButton();
         }
         function saveWorkout() {
           if (!lastGeneratedWorkout || !lastGeneratedWorkout.exercises) return;
@@ -303,7 +335,8 @@ function renderLayout(title, mainContent) {
           })
           .then(res => res.json())
           .then(() => {
-            document.getElementById('saveWorkoutBtn').style.display = 'none';
+            hideSaveButton();
+            lastGeneratedWorkout = null;
             loadSavedWorkouts();
           });
         }
@@ -326,38 +359,6 @@ function renderLayout(title, mainContent) {
           ul.innerHTML = list.map(function(w, i) {
             return '<li style="margin-bottom:10px;">Workout #' + (i+1) + ' &mdash; ' + w.exercises.length + ' exercises <button onclick="deleteWorkout(\'' + w.id + '\')" style="margin-left:12px;">Delete</button></li>';
           }).join('');
-        }
-        // --- END SIMPLE CRUD ---
-        </script>
-        <script>
-        // SPA Modal and Workout Logic
-        function generateWorkout(muscles, equipment) {
-          // Returns up to 3 matching exercises from EXERCISES
-          const all = ${JSON.stringify(EXERCISES)};
-          let filtered = all.filter(e =>
-            (!muscles.length || muscles.includes(e.muscle)) &&
-            (!equipment.length || e.equipment.some(eq => equipment.includes(eq)))
-          );
-          return { exercises: filtered.slice(0, 3) };
-        }
-        function renderWorkout(workout) {
-          var container = document.getElementById('generatedWorkout');
-          container.innerHTML = '';
-          if (!workout || !workout.exercises || !workout.exercises.length) {
-            container.innerHTML = '<p>No workout generated.</p>';
-            document.getElementById('saveWorkoutBtn').style.display = 'none';
-            return;
-          }
-          const html = workout.exercises.map(function(ex) {
-            return '<article class="exercise-card" style="background:#fff;border:1px solid #bbb;border-radius:18px;padding:20px 32px;margin-bottom:16px;box-shadow:0 4px 16px rgba(0,0,0,0.10);max-width:700px;min-width:320px;width:95vw;margin-left:auto;margin-right:auto;">'
-              + '<h3 style="margin:0 0 8px;font-size:1.08rem;color:#111;font-weight:700;text-align:left;">' + ex.name + '</h3>'
-              + '<div style="margin-bottom:4px;font-size:0.97rem;color:#111;text-align:left;"><strong>Muscle:</strong> ' + ex.muscle + ' &nbsp; <strong>Equipment:</strong> ' + (Array.isArray(ex.equipment) ? ex.equipment.join(', ') : ex.equipment) + '</div>'
-              + '<div style="font-size:0.96rem;line-height:1.35;color:#111;margin-top:2px;text-align:left;">' + ex.steps + '</div>'
-            + '</article>';
-          }).join('');
-          container.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;width:100%;gap:0;">' + html + '</div>';
-          lastGeneratedWorkout = workout;
-          showSaveButton();
         }
         document.addEventListener('DOMContentLoaded', function() {
           var openBtn = document.getElementById('generateWorkoutMainBtn');
@@ -387,7 +388,9 @@ function renderLayout(title, mainContent) {
           }
           if (saveBtn) saveBtn.onclick = saveWorkout;
           loadSavedWorkouts();
+          hideSaveButton();
         });
+        // --- END SPA LOGIC ---
         </script>
       </body>
     </html>
