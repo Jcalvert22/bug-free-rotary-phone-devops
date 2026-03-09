@@ -244,8 +244,6 @@ function renderLayout(title, mainContent) {
             </div>
             <nav class="nav-links">
               <a href="/">Home</a>
-              <a href="/subscribe">Subscribe</a>
-              <a href="/planner">Planner</a>
             </nav>
           </div>
         </header>
