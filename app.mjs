@@ -1,8 +1,9 @@
-import path from 'path';
-import fs from 'fs';
-import express from 'express';
-import dotenv from 'dotenv';
-dotenv.config();
+
+// --- Start the Express server ---
+const PORT = 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:3000`);
+});
 
 // --- In-memory storage for saved workouts ---
 const WORKOUTS = [];
