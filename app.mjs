@@ -259,6 +259,7 @@ function cleanInput(value, fallback = '') {
 }
 
 function renderLayout(title, mainContent) {
+
   return `
     <!doctype html>
     <html lang="en">
@@ -270,218 +271,13 @@ function renderLayout(title, mainContent) {
         ${BASE_STYLES}
       </head>
       <body>
-        <header class="site-header">
-          <div class="header-inner">
-            <div class="brand">
-              <img src="/images/allaround-athlete-logo.png" alt="GymTravel logo">
-              <span>GymTravel</span>
-            </div>
-            <nav class="nav-links">
-              <a href="/">Home</a>
-            </nav>
-          </div>
-        </header>
         <main class="page-shell">
           ${mainContent}
         </main>
-        <footer>
-          © ${new Date().getFullYear()} · Class-demo build
-        </footer>
-        <script>
-        // --- SPA Modal, Workout, and Saved Workouts Logic ---
-        (() => {
-          let lastGeneratedWorkout = null;
-          function showSaveButton() {
-            var btn = document.getElementById('saveWorkoutBtn');
-            if (btn) btn.style.display = 'block';
-          }
-          function hideSaveButton() {
-            var btn = document.getElementById('saveWorkoutBtn');
-            if (btn) btn.style.display = 'none';
-          }
-          function generateWorkout(muscles, equipment) {
-            const all = ${JSON.stringify(EXERCISES)};
-            let filtered = all.filter(e =>
-              (!muscles.length || muscles.includes(e.muscle)) &&
-              (!equipment.length || e.equipment.some(eq => equipment.includes(eq)))
-            );
-            return { exercises: filtered.slice(0, 3) };
-          }
-          function renderWorkout(workout) {
-            var container = document.getElementById('generatedWorkout');
-            container.innerHTML = '';
-            if (!workout || !workout.exercises || !workout.exercises.length) {
-              container.innerHTML = '<p>No workout generated.</p>';
-              hideSaveButton();
-              lastGeneratedWorkout = null;
-              return;
-            }
-            const html = workout.exercises.map(function(ex) {
-              return '<article class="exercise-card" style="background:#fff;border:1px solid #bbb;border-radius:18px;padding:20px 32px;margin-bottom:16px;box-shadow:0 4px 16px rgba(0,0,0,0.10);max-width:700px;min-width:320px;width:95vw;margin-left:auto;margin-right:auto;">'
-                + '<h3 style="margin:0 0 8px;font-size:1.08rem;color:#111;font-weight:700;text-align:left;">' + ex.name + '</h3>'
-                + '<div style="margin-bottom:4px;font-size:0.97rem;color:#111;text-align:left;"><strong>Muscle:</strong> ' + ex.muscle + ' &nbsp; <strong>Equipment:</strong> ' + (Array.isArray(ex.equipment) ? ex.equipment.join(', ') : ex.equipment) + '</div>'
-                + '<div style="font-size:0.96rem;line-height:1.35;color:#111;margin-top:2px;text-align:left;">' + ex.steps + '</div>'
-              + '</article>';
-            }).join('');
-            container.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;width:100%;gap:0;">' + html + '</div>';
-            lastGeneratedWorkout = workout;
-            showSaveButton();
-          }
-          function saveWorkout() {
-            if (!lastGeneratedWorkout || !lastGeneratedWorkout.exercises) return;
-            fetch('/api/workouts', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ exercises: lastGeneratedWorkout.exercises })
-            })
-            .then(res => res.json())
-            .then(() => {
-              hideSaveButton();
-              lastGeneratedWorkout = null;
-              loadSavedWorkouts();
-            });
-          }
-          function loadSavedWorkouts() {
-            fetch('/api/workouts')
-              .then(res => res.json())
-              .then(renderSavedWorkouts);
-          }
-          function deleteWorkout(id) {
-            fetch('/api/workouts/' + encodeURIComponent(id), { method: 'DELETE' })
-              .then(() => loadSavedWorkouts());
-          }
-          function renderSavedWorkouts(list) {
-            var ul = document.getElementById('savedWorkoutsList');
-            if (!ul) return;
-            if (!list || !list.length) {
-              ul.innerHTML = '<li style="color:#888;">No saved workouts.</li>';
-              return;
-            }
-            ul.innerHTML = list.map(function(w, i) {
-              return '<li style="margin-bottom:10px;">Workout #' + (i+1) + ' &mdash; ' + w.exercises.length + ' exercises <button onclick="deleteWorkout(\'' + w.id + '\')" style="margin-left:12px;">Delete</button></li>';
-            }).join('');
-          }
-          function setupEventListeners() {
-            var openBtn = document.getElementById('generateWorkoutMainBtn');
-            var modal = document.getElementById('generateWorkoutModal');
-            var closeBtn = document.getElementById('closeGenerateWorkoutModal');
-            var form = document.getElementById('generateWorkoutForm');
-            var saveBtn = document.getElementById('saveWorkoutBtn');
-            if (openBtn && modal) {
-              openBtn.onclick = function() {
-                modal.style.display = 'flex';
-              };
-            }
-            if (closeBtn && modal) {
-              closeBtn.onclick = function() {
-                modal.style.display = 'none';
-              };
-            }
-            if (form) {
-              form.onsubmit = function(e) {
-                e.preventDefault();
-                const muscles = Array.from(form.querySelectorAll('input[name="muscle"]:checked')).map(cb => cb.value);
-                const equipment = Array.from(form.querySelectorAll('input[name="equipment"]:checked')).map(cb => cb.value);
-                const workout = generateWorkout(muscles, equipment);
-                renderWorkout(workout);
-                modal.style.display = 'none';
-              };
-            }
-            if (saveBtn) saveBtn.onclick = saveWorkout;
-          }
-          document.addEventListener('DOMContentLoaded', function() {
-            setupEventListeners();
-            loadSavedWorkouts();
-            hideSaveButton();
-          });
-          // Expose for inline button delete
-          window.deleteWorkout = deleteWorkout;
-        })();
-        // --- END SPA LOGIC ---
-        </script>
       </body>
     </html>
   `;
 }
-
-// Simplified: returns first 3 matching exercises by muscle and equipment, no randomness or fallback
-function getExerciseSuggestions(muscle, equipment) {
-  return EXERCISES.filter(
-    e => e.muscle === muscle && e.equipment.includes(equipment)
-  ).slice(0, 3);
-}
-
-function renderHistoryList() {
-  if (!userState.completedPlans.length) {
-    return '<p style="color:var(--muted);">No saved plans yet. Generate one to see it here.</p>';
-  }
-  return `
-    <ul class="history-list">
-      ${userState.completedPlans.map(entry => `<li>${escapeHtml(entry.summary)}</li>`).join('')}
-    </ul>
-  `;
-}
-
-app.get('/', (req, res) => {
-
-  const body = `
-    <section class="landing-hero panel">
-      <div class="hero-intro">
-        <span class="hero-tag">Beginner friendly</span>
-        <h1>Structure without stress.</h1>
-        <p>Pick a muscle, pick the gear you actually have, and get three calm moves with plain-English steps. Everything fits on one screen so new lifters never feel lost.</p>
-        <div class="hero-actions">
-          <button class="hero-btn primary" id="generateWorkoutMainBtn" type="button">Generate Workout</button>
-        </div>
-      </div>
-      <div class="panel hero-secondary-card" style="background:rgba(255,255,255,0.03);">
-        <h2 style="margin-top:0;">What stays simple?</h2>
-        <ul>
-          <li>Only four muscle groups and three equipment choices.</li>
-          <li>Each workout = three moves, 3×10 reps, slow breathing.</li>
-          <li>History lives in memory so demos reset with a restart.</li>
-          <li>Zero login screens—just build, read, and close.</li>
-        </ul>
-      </div>
-    </section>
-    <!-- Modal for Generate Workout -->
-    <div id="generateWorkoutModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
-      <div style="background:#fff; color:#111; border-radius:12px; padding:32px 28px; max-width:420px; margin:auto; position:relative; text-align:left; box-shadow:0 4px 24px rgba(0,0,0,0.13);">
-        <h2 style="color:#111; font-size:1.35rem; font-weight:700; margin:0 0 18px 0; text-align:left; letter-spacing:0.01em;">Setup Your Workout</h2>
-        <form id="generateWorkoutForm" style="color:#111; text-align:left;">
-          <div style="margin-bottom:14px;">
-            <label style="font-weight:600; color:#111;">Muscle Groups:</label><br>
-            <label style="margin-right:12px;"><input type="checkbox" name="muscle" value="Chest"><span style="color:#111;"> Chest</span></label>
-            <label style="margin-right:12px;"><input type="checkbox" name="muscle" value="Back"><span style="color:#111;"> Back</span></label>
-            <label style="margin-right:12px;"><input type="checkbox" name="muscle" value="Legs"><span style="color:#111;"> Legs</span></label>
-            <label><input type="checkbox" name="muscle" value="Core"><span style="color:#111;"> Core</span></label>
-          </div>
-          <div style="margin-bottom:18px;">
-            <label style="font-weight:600; color:#111;">Equipment:</label><br>
-            <label style="margin-right:12px;"><input type="checkbox" name="equipment" value="None"><span style="color:#111;"> None</span></label>
-            <label style="margin-right:12px;"><input type="checkbox" name="equipment" value="Dumbbells"><span style="color:#111;"> Dumbbells</span></label>
-            <label><input type="checkbox" name="equipment" value="Bench"><span style="color:#111;"> Bench</span></label>
-          </div>
-          <button type="submit" id="generateWorkoutSubmitBtn" style="margin-top:8px; margin-right:10px; background:#111; color:#fff; border-radius:8px; padding:10px 22px; font-size:1rem; font-weight:600; border:none;">Generate</button>
-          <button type="button" id="closeGenerateWorkoutModal" style="margin-left:0; background:#eee; color:#111; border-radius:8px; padding:10px 22px; font-size:1rem; font-weight:600; border:none;">Cancel</button>
-        </form>
-      </div>
-    </div>
-    <div id="generatedWorkout"></div>
-    <button id="saveWorkoutBtn" style="display:none; margin:18px 0 0 0;">Save Workout</button>
-    <section id="savedWorkoutsSection" style="margin-top:32px;">
-      <h2>Saved Workouts</h2>
-      <ul id="savedWorkoutsList" style="list-style:none; padding:0; margin:0;"></ul>
-    </section>
-    <section id="history" class="panel">
-      <h2 style="margin-top:0;">Recent workouts</h2>
-      <p style="color:var(--muted);">We keep the last five titles so you can show classmates what you generated.</p>
-      ${renderHistoryList()}
-    </section>
-  `;
-
-  res.send(renderLayout('GymTravel · Simple Planner', body));
-});
 
 app.get('/subscribe', (req, res) => {
   if (userState.isSubscribed) {
@@ -518,117 +314,136 @@ app.get('/planner', (req, res) => {
       <span class="hero-tag">Workout builder</span>
       <h1 style="margin:12px 0 6px;">Pick a focus</h1>
       <p style="color:var(--muted);">Choose one muscle group and the tools you actually have. We dial up three easy moves with calm cues.</p>
-      <form method="POST" action="/planner">
-        <label>
-          Your name (optional)
-          <input type="text" name="name" placeholder="Sam Student">
-        </label>
-        <label>
-          Muscle group
-          <select name="muscle" required>
-            <option value="">Select...</option>
-            ${muscleOptions}
-          </select>
-        </label>
-        <label>
-          Equipment on hand
-          <select name="equipment" required>
-            <option value="">Select...</option>
-            ${equipmentOptions}
-          </select>
-        </label>
-        <button type="submit">Show my moves</button>
+      <form id="generateWorkoutForm" style="color:#111; text-align:left;">
+        <div style="margin-bottom:14px;">
+          <label style="font-weight:600; color:#111;">Muscle Groups:</label><br>
+          <label style="margin-right:12px;"><input type="checkbox" name="muscle" value="Chest"><span style="color:#111;"> Chest</span></label>
+          <label style="margin-right:12px;"><input type="checkbox" name="muscle" value="Back"><span style="color:#111;"> Back</span></label>
+          <label style="margin-right:12px;"><input type="checkbox" name="muscle" value="Legs"><span style="color:#111;"> Legs</span></label>
+          <label><input type="checkbox" name="muscle" value="Core"><span style="color:#111;"> Core</span></label>
+        </div>
+        <div style="margin-bottom:18px;">
+          <label style="font-weight:600; color:#111;">Equipment:</label><br>
+          <label style="margin-right:12px;"><input type="checkbox" name="equipment" value="None"><span style="color:#111;"> None</span></label>
+          <label style="margin-right:12px;"><input type="checkbox" name="equipment" value="Dumbbells"><span style="color:#111;"> Dumbbells</span></label>
+          <label><input type="checkbox" name="equipment" value="Bench"><span style="color:#111;"> Bench</span></label>
+        </div>
+        <button type="submit" id="generateWorkoutSubmitBtn" style="margin-top:8px; margin-right:10px; background:#111; color:#fff; border-radius:8px; padding:10px 22px; font-size:1rem; font-weight:600; border:none;">Generate</button>
       </form>
-    </section>
-    <section class="panel">
-      <h2 style="margin-top:0;">Recent workouts</h2>
-      ${renderHistoryList()}
-    </section>
-  `;
-
+      <div id="generatedWorkout"></div>
+      <div id="saveWorkoutBtnContainer" style="width:100%;display:flex;justify-content:center;align-items:center;margin:18px 0 0 0;"></div>
+      <section id="savedWorkoutsSection" style="margin-top:32px;">
+        <h2>Saved Workouts</h2>
+        <ul id="savedWorkoutsList" style="list-style:none; padding:0; margin:0;"></ul>
+      </section>
+      <script>
+      (() => {
+        let lastGeneratedWorkout = null;
+        function showSaveButton() {
+          const container = document.getElementById('saveWorkoutBtnContainer');
+          if (!container) return;
+          if (!container.querySelector('button')) {
+            const btn = document.createElement('button');
+            btn.id = 'saveWorkoutBtn';
+            btn.textContent = 'Save Workout';
+            btn.style.margin = '0 auto';
+            btn.style.padding = '14px 32px';
+            btn.style.fontWeight = '700';
+            btn.style.fontSize = '1.08rem';
+            btn.style.borderRadius = '12px';
+            btn.style.background = 'linear-gradient(135deg, #7fc4ff, #4f8cff)';
+            btn.style.color = '#0c1633';
+            btn.style.boxShadow = '0 18px 35px rgba(79,140,255,0.35)';
+            btn.onclick = saveWorkout;
+            container.appendChild(btn);
+          } else {
+            container.querySelector('button').style.display = 'block';
+          }
+        }
+        function hideSaveButton() {
+          const container = document.getElementById('saveWorkoutBtnContainer');
+          if (!container) return;
+          const btn = container.querySelector('button');
+          if (btn) btn.style.display = 'none';
+        }
+        function generateWorkout(muscles, equipment) {
+          const all = ${JSON.stringify(EXERCISES)};
+          let filtered = all.filter(e =>
+            (!muscles.length || muscles.includes(e.muscle)) &&
+            (!equipment.length || e.equipment.some(eq => equipment.includes(eq)))
+          );
+          return { exercises: filtered.slice(0, 3) };
+        }
+        function renderWorkout(workout) {
+          var container = document.getElementById('generatedWorkout');
+          container.innerHTML = '';
+          if (!workout || !workout.exercises || !workout.exercises.length) {
+            container.innerHTML = '<p>No workout generated.</p>';
+            hideSaveButton();
+            lastGeneratedWorkout = null;
+            return;
+          }
+          const html = workout.exercises.map(function(ex) {
+            return '<article class="exercise-card" style="background:#fff;border:1px solid #bbb;border-radius:18px;padding:20px 32px;margin-bottom:16px;box-shadow:0 4px 16px rgba(0,0,0,0.10);max-width:700px;min-width:320px;width:95vw;margin-left:auto;margin-right:auto;">'
+              + '<h3 style="margin:0 0 8px;font-size:1.08rem;color:#111;font-weight:700;text-align:left;">' + ex.name + '</h3>'
+              + '<div style="margin-bottom:4px;font-size:0.97rem;color:#111;text-align:left;"><strong>Muscle:</strong> ' + ex.muscle + ' &nbsp; <strong>Equipment:</strong> ' + (Array.isArray(ex.equipment) ? ex.equipment.join(', ') : ex.equipment) + '</div>'
+              + '<div style="font-size:0.96rem;line-height:1.35;color:#111;margin-top:2px;text-align:left;">' + ex.steps + '</div>'
+            + '</article>';
+          }).join('');
+          container.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;width:100%;gap:0;">' + html + '</div>';
+          lastGeneratedWorkout = workout;
+          showSaveButton();
+        }
+        function saveWorkout() {
+          if (!lastGeneratedWorkout || !lastGeneratedWorkout.exercises) return;
+          fetch('/api/workouts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ exercises: lastGeneratedWorkout.exercises })
+          })
+          .then(res => res.json())
+          .then(() => {
+            hideSaveButton();
+            lastGeneratedWorkout = null;
+            loadSavedWorkouts();
+          });
+        }
+        function loadSavedWorkouts() {
+          fetch('/api/workouts')
+            .then(res => res.json())
+            .then(renderSavedWorkouts);
+        }
+        function deleteWorkout(id) {
+          fetch('/api/workouts/' + encodeURIComponent(id), { method: 'DELETE' })
+            .then(() => loadSavedWorkouts());
+        }
+        function renderSavedWorkouts(list) {
+          var ul = document.getElementById('savedWorkoutsList');
+          if (!ul) return;
+          if (!list || !list.length) {
+            ul.innerHTML = '<li style="color:#888;">No saved workouts.</li>';
+            return;
+          }
+          ul.innerHTML = list.map(function(w, i) {
+            return '<li style="margin-bottom:10px;">Workout #' + (i+1) + ' &mdash; ' + w.exercises.length + ' exercises <button onclick="deleteWorkout(\'' + w.id + '\')" style="margin-left:12px;">Delete</button></li>';
+          }).join('');
+        }
+        document.getElementById('generateWorkoutForm').onsubmit = function(e) {
+          e.preventDefault();
+          const form = e.target;
+          const muscles = Array.from(form.querySelectorAll('input[name="muscle"]:checked')).map(cb => cb.value);
+          const equipment = Array.from(form.querySelectorAll('input[name="equipment"]:checked')).map(cb => cb.value);
+          const workout = generateWorkout(muscles, equipment);
+          renderWorkout(workout);
+        };
+        loadSavedWorkouts();
+        hideSaveButton();
+        window.deleteWorkout = deleteWorkout;
+      })();
+      </script>
+    `;
   res.send(renderLayout('Planner · GymTravel', body));
 });
-
-app.post('/planner', (req, res) => {
-  if (!userState.isSubscribed) {
-    return res.redirect('/subscribe');
-  }
-  const { name, muscle, equipment } = req.body;
-  const rawName = cleanInput(name, 'Friend');
-  const displayName = escapeHtml(rawName);
-  const pickedMuscle = MUSCLE_GROUPS.includes(muscle) ? muscle : '';
-  const pickedEquipment = EQUIPMENT_OPTIONS.includes(equipment) ? equipment : '';
-  const exercises = getExerciseSuggestions(pickedMuscle, pickedEquipment);
-
-  const planSummary = exercises.length
-    ? exercises.map(ex => `
-        <article class="plan-card">
-          <h3>${escapeHtml(ex.name)}</h3>
-          <p><strong>Muscle:</strong> ${escapeHtml(ex.muscle)} · <strong>Equipment:</strong> ${escapeHtml(ex.equipment.join(', '))}</p>
-          <p>${escapeHtml(ex.steps)}</p>
-          <p style="color:#d6e3ff;">Guideline: 3 sets × 10 calm reps · breathe through every rep.</p>
-        </article>
-      `).join('')
-    : '<p style="color:var(--muted);">No matching moves yet. Try choosing different equipment.</p>';
-
-  const historyLabel = `${rawName}'s ${pickedMuscle || 'General'} workout (${pickedEquipment || 'Any'})`;
-  userState.completedPlans.unshift({ summary: historyLabel });
-  if (userState.completedPlans.length > 5) {
-    userState.completedPlans.pop();
-  }
-
-  const body = `
-    <section class="panel">
-      <span class="hero-tag">${escapeHtml(pickedMuscle || 'General focus')}</span>
-      <h1 style="margin:12px 0 6px;">${displayName}'s workout card</h1>
-      <p style="color:var(--muted);">Nothing fancy—run through each move for three sets of ten slow reps, rest when you need, and jot notes in your notebook.</p>
-      ${planSummary}
-      <div style="margin-top:18px;">
-        <a class="hero-btn primary" href="/planner" style="display:inline-flex;">Build another workout</a>
-      </div>
-    </section>
-    <section class="panel">
-      <h2 style="margin-top:0;">Recent workouts</h2>
-      ${renderHistoryList()}
-    </section>
-  `;
-
-  res.send(renderLayout('Your Plan · GymTravel', body));
-});
-
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-});
-
-//
-let routines = [];
-let customExercises = [];
-
-function generateId() {
-  return Math.random().toString(36).substr(2, 9) + Date.now();
-}
-
-//
-const routineController = {
-  getAll(req, res) {
-    res.json(getAllItems("routines"));
-  },
-  create(req, res) {
-    res.status(201).json(createItem("routines", req.body));
-  },
-  update(req, res) {
-    const { id } = req.params;
-    const updated = updateItem("routines", id, req.body);
-    if (!updated) return res.status(404).json({ error: "Routine not found" });
-    res.json(updated);
-  },
-  remove(req, res) {
-    const { id } = req.params;
-    const success = deleteItem("routines", id);
-    if (!success) return res.status(404).json({ error: "Routine not found" });
-    res.json({ success: true });
-  }
-};
 
 const exerciseController = {
   getAll(req, res) {
@@ -653,66 +468,3 @@ const exerciseController = {
   }
 };
 
-//
-app.use(express.json());
-
-app.get('/api/routines', routineController.getAll);
-app.post('/api/routines', (req, res) => {
-  // If exercises not provided, auto-generate from EXERCISES
-  let { name, muscle, equipment, exercises } = req.body;
-  if (!exercises || !Array.isArray(exercises) || exercises.length === 0) {
-    exercises = EXERCISES.filter(e => e.muscle === muscle && e.equipment.includes(equipment)).slice(0, 3);
-  }
-  req.body.exercises = exercises;
-  routineController.create(req, res);
-});
-app.put('/api/routines/:id', routineController.update);
-app.delete('/api/routines/:id', routineController.remove);
-
-app.get('/api/exercises', exerciseController.getAll);
-app.post('/api/exercises', exerciseController.create);
-app.put('/api/exercises/:id', exerciseController.update);
-app.delete('/api/exercises/:id', exerciseController.remove);
-
-//
-app.get('/health', (req, res) => res.json({ status: 'ok' }));
-
-app.use((req, res, next) => {
-  res.status(404).json({ error: 'Not found' });
-});
-app.use((err, req, res, next) => {
-  console.error(err);
-  res.status(err.status || 500).json({ error: err.message || 'Server error' });
-});
-
-//
-//
-
-
-// =========================
-// ...existing code...
-
-// =========================
-// VIEW HELPERS (for API)
-// =========================
-function buildExercises(muscle, equipment) {
-  return EXERCISES.filter(e => e.muscle === muscle && e.equipment.includes(equipment)).slice(0, 3);
-}
-
-// =========================
-// API ENDPOINTS
-// =========================
-// ...existing code...
-
-// =========================
-// ERROR HANDLING
-// =========================
-app.use((req, res, next) => {
-  res.status(404).json({ error: 'Not found' });
-});
-app.use((err, req, res, next) => {
-  console.error(err);
-  res.status(err.status || 500).json({ error: err.message || 'Server error' });
-});
-
-// ...existing code...
