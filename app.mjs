@@ -1,4 +1,10 @@
-// --- In-memory storage for saved workouts ---
+import path from 'path';
+import fs from 'fs';
+import express from 'express';
+import dotenv from 'dotenv';
+dotenv.config();
+
+
 const WORKOUTS = [];
 
 // --- API endpoints for workouts CRUD ---
@@ -22,6 +28,7 @@ app.delete('/api/workouts/:id', (req, res) => {
   WORKOUTS.splice(idx, 1);
   res.json({ success: true });
 });
+
 // In-memory collections object
 const collections = {
   items: [],
@@ -52,14 +59,6 @@ function deleteItem(collectionName, id) {
   arr.splice(idx, 1);
   return true;
 }
-
-import path from 'path';
-import fs from 'fs';
-import express from 'express';
-import dotenv from 'dotenv';
-dotenv.config();
-
-
 
 
 const app = express();
@@ -493,9 +492,7 @@ const exerciseController = {
   }
 };
 
-// --- Start the Express server ---
-const PORT = 3000;
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:3000`);
+app.listen(3000, () => {
+  console.log('Server running on http://localhost:3000');
 });
 
