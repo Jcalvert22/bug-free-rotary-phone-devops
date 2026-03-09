@@ -291,7 +291,6 @@ function renderLayout(title, mainContent) {
         // --- SIMPLE CRUD FOR SAVED WORKOUTS ---
         let lastGeneratedWorkout = null;
         function showSaveButton(workout) {
-          lastGeneratedWorkout = workout;
           var btn = document.getElementById('saveWorkoutBtn');
           if (btn) btn.style.display = 'block';
         }
@@ -357,7 +356,8 @@ function renderLayout(title, mainContent) {
             + '</article>';
           }).join('');
           container.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;width:100%;gap:0;">' + html + '</div>';
-          showSaveButton(workout);
+          lastGeneratedWorkout = workout;
+          showSaveButton();
         }
         document.addEventListener('DOMContentLoaded', function() {
           var openBtn = document.getElementById('generateWorkoutMainBtn');
