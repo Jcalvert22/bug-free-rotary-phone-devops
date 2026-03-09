@@ -318,7 +318,7 @@ app.get('/', (req, res) => {
         <h1>Structure without stress.</h1>
         <p>Pick a muscle, pick the gear you actually have, and get three calm moves with plain-English steps. Everything fits on one screen so new lifters never feel lost.</p>
         <div class="hero-actions">
-          <button class="hero-btn primary" type="button">Start Workout</button>
+          <button class="hero-btn primary" id="startWorkoutBtn" type="button">Start Workout</button>
         </div>
       </div>
       <div class="panel hero-secondary-card" style="background:rgba(255,255,255,0.03);">
