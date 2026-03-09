@@ -251,7 +251,7 @@ function renderLayout(title, mainContent) {
           ${mainContent}
         </main>
         <footer>
-          © ${new Date().getFullYear()} · Class-demo build · Nothing here is real commerce.
+          © ${new Date().getFullYear()} · Class-demo build
         </footer>
       </body>
     </html>
@@ -277,21 +277,14 @@ function renderHistoryList() {
 }
 
 app.get('/', (req, res) => {
-  const ctaHref = userState.isSubscribed ? '/planner' : '/subscribe';
-  const statusCopy = userState.isSubscribed
-    ? 'You already unlocked the planner—pick a muscle group and get moving.'
-    : 'Hit subscribe so we can unlock the planner. No real payment happens.';
-
   const body = `
     <section class="landing-hero panel">
       <div class="hero-intro">
         <span class="hero-tag">Beginner friendly</span>
         <h1>Structure without stress.</h1>
         <p>Pick a muscle, pick the gear you actually have, and get three calm moves with plain-English steps. Everything fits on one screen so new lifters never feel lost.</p>
-        <p style="color:var(--muted);">${escapeHtml(statusCopy)}</p>
         <div class="hero-actions">
-          <a class="hero-btn primary" href="${ctaHref}">Open Planner</a>
-          <a class="hero-btn secondary" href="#history">See History</a>
+          <a class="hero-btn primary" href="/">Start Workout</a>
         </div>
       </div>
       <div class="panel hero-secondary-card" style="background:rgba(255,255,255,0.03);">
@@ -305,7 +298,7 @@ app.get('/', (req, res) => {
       </div>
     </section>
     <section id="history" class="panel">
-      <h2 style="margin-top:0;">Recent plans</h2>
+      <h2 style="margin-top:0;">Recent workouts</h2>
       <p style="color:var(--muted);">We keep the last five titles so you can show classmates what you generated.</p>
       ${renderHistoryList()}
     </section>
@@ -346,7 +339,7 @@ app.get('/planner', (req, res) => {
 
   const body = `
     <section class="panel">
-      <span class="hero-tag">Plan builder</span>
+      <span class="hero-tag">Workout builder</span>
       <h1 style="margin:12px 0 6px;">Pick a focus</h1>
       <p style="color:var(--muted);">Choose one muscle group and the tools you actually have. We dial up three easy moves with calm cues.</p>
       <form method="POST" action="/planner">
@@ -372,7 +365,7 @@ app.get('/planner', (req, res) => {
       </form>
     </section>
     <section class="panel">
-      <h2 style="margin-top:0;">Recent plans</h2>
+      <h2 style="margin-top:0;">Recent workouts</h2>
       ${renderHistoryList()}
     </section>
   `;
@@ -402,7 +395,7 @@ app.post('/planner', (req, res) => {
       `).join('')
     : '<p style="color:var(--muted);">No matching moves yet. Try choosing different equipment.</p>';
 
-  const historyLabel = `${rawName}'s ${pickedMuscle || 'General'} plan (${pickedEquipment || 'Any'})`;
+  const historyLabel = `${rawName}'s ${pickedMuscle || 'General'} workout (${pickedEquipment || 'Any'})`;
   userState.completedPlans.unshift({ summary: historyLabel });
   if (userState.completedPlans.length > 5) {
     userState.completedPlans.pop();
@@ -415,11 +408,11 @@ app.post('/planner', (req, res) => {
       <p style="color:var(--muted);">Nothing fancy—run through each move for three sets of ten slow reps, rest when you need, and jot notes in your notebook.</p>
       ${planSummary}
       <div style="margin-top:18px;">
-        <a class="hero-btn primary" href="/planner" style="display:inline-flex;">Build another plan</a>
+        <a class="hero-btn primary" href="/planner" style="display:inline-flex;">Build another workout</a>
       </div>
     </section>
     <section class="panel">
-      <h2 style="margin-top:0;">Recent plans</h2>
+      <h2 style="margin-top:0;">Recent workouts</h2>
       ${renderHistoryList()}
     </section>
   `;
