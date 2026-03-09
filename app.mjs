@@ -1,3 +1,5 @@
+import path from 'path';
+import fs from 'fs';
 import express from 'express';
 
 const app = express();
@@ -433,13 +435,7 @@ app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
 
-// =========================
-// MODEL (Mongoose, MongoDB)
-// =========================
-
-// =========================
-// MODEL (in-memory arrays + helper functions)
-// =========================
+//
 let routines = [];
 let customExercises = [];
 
@@ -447,9 +443,7 @@ function generateId() {
   return Math.random().toString(36).substr(2, 9) + Date.now();
 }
 
-// =========================
-// CONTROLLERS (functions for CRUD)
-// =========================
+//
 const routineController = {
   getAll(req, res) {
     res.json(routines.slice().sort((a, b) => b.createdAt - a.createdAt));
@@ -518,12 +512,9 @@ const exerciseController = {
   }
 };
 
-// =========================
-// API ROUTES (REST endpoints)
-// =========================
+//
 app.use(express.json());
 
-// Routines CRUD
 app.get('/api/routines', routineController.getAll);
 app.post('/api/routines', (req, res) => {
   // If exercises not provided, auto-generate from EXERCISES
@@ -537,15 +528,12 @@ app.post('/api/routines', (req, res) => {
 app.put('/api/routines/:id', routineController.update);
 app.delete('/api/routines/:id', routineController.remove);
 
-// Exercises CRUD
 app.get('/api/exercises', exerciseController.getAll);
 app.post('/api/exercises', exerciseController.create);
 app.put('/api/exercises/:id', exerciseController.update);
 app.delete('/api/exercises/:id', exerciseController.remove);
 
-// =========================
-// ERROR HANDLING
-// =========================
+//
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 
 app.use((req, res, next) => {
@@ -556,9 +544,7 @@ app.use((err, req, res, next) => {
   res.status(err.status || 500).json({ error: err.message || 'Server error' });
 });
 
-// =========================
-// SPA AJAX FRONT-END (public/scripts/app.js)
-// =========================
+//
 //
 const scriptPath = path.join(process.cwd(), 'public', 'scripts', 'app.js');
 if (!fs.existsSync(scriptPath)) {
