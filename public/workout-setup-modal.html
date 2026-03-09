@@ -1,0 +1,25 @@
+<!-- Workout Setup Modal -->
+<div id="workout-setup-modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+  <div style="background:#fff; color:#222; border-radius:12px; padding:32px; max-width:400px; margin:auto; position:relative;">
+    <h2>Setup Your Workout</h2>
+    <form id="workout-setup-form">
+      <div>
+        <label>Muscle Groups:</label><br>
+        <label><input type="checkbox" name="muscle" value="Chest"> Chest</label>
+        <label><input type="checkbox" name="muscle" value="Back"> Back</label>
+        <label><input type="checkbox" name="muscle" value="Legs"> Legs</label>
+        <label><input type="checkbox" name="muscle" value="Core"> Core</label>
+      </div>
+      <div style="margin-top:12px;">
+        <label>Equipment:</label><br>
+        <label><input type="checkbox" name="equipment" value="None"> None</label>
+        <label><input type="checkbox" name="equipment" value="Dumbbells"> Dumbbells</label>
+        <label><input type="checkbox" name="equipment" value="Bench"> Bench</label>
+      </div>
+      <button type="submit" id="generate-workout-btn" style="margin-top:18px;">Generate Workout</button>
+      <button type="button" id="close-setup-modal" style="margin-left:10px;">Cancel</button>
+    </form>
+  </div>
+</div>
+<div id="generated-workout"></div>
+<button id="save-workout-btn" style="display:none;">Save Workout</button>
