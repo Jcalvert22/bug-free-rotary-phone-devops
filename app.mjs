@@ -381,10 +381,10 @@ app.get('/', (req, res) => {
         return;
       }
       const html = workout.exercises.map(function(ex) {
-        return '<article class="exercise-card" style="background:var(--panel-light);border:1px solid var(--border);border-radius:18px;padding:18px 22px;margin-bottom:18px;box-shadow:0 8px 24px rgba(0,0,0,0.18);max-width:480px;margin-left:auto;margin-right:auto;">'
-          + '<h3 style="margin:0 0 8px;font-size:1.3rem;color:var(--accent);">' + ex.name + '</h3>'
-          + '<div style="margin-bottom:8px;font-size:1rem;color:var(--muted);"><strong>Muscle:</strong> ' + ex.muscle + ' &nbsp; <strong>Equipment:</strong> ' + (Array.isArray(ex.equipment) ? ex.equipment.join(', ') : ex.equipment) + '</div>'
-          + '<div style="font-size:1.05rem;line-height:1.6;color:var(--text);">' + ex.steps + '</div>'
+        return '<article class="exercise-card" style="background:var(--panel-light);border:1px solid var(--border);border-radius:18px;padding:24px 36px;margin-bottom:22px;box-shadow:0 8px 24px rgba(0,0,0,0.18);max-width:700px;min-width:320px;width:90vw;margin-left:auto;margin-right:auto;">'
+          + '<h3 style="margin:0 0 10px;font-size:1.1rem;color:#1a2345;letter-spacing:0.01em;">' + ex.name + '</h3>'
+          + '<div style="margin-bottom:6px;font-size:0.98rem;color:#222;"><strong>Muscle:</strong> ' + ex.muscle + ' &nbsp; <strong>Equipment:</strong> ' + (Array.isArray(ex.equipment) ? ex.equipment.join(', ') : ex.equipment) + '</div>'
+          + '<div style="font-size:0.97rem;line-height:1.45;color:#222;margin-top:2px;">' + ex.steps + '</div>'
         + '</article>';
       }).join('');
       container.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;width:100%;">' + html + '</div>';
