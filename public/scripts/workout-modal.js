@@ -44,3 +44,4 @@ function renderWorkout(workout) {
   ).join('');
   container.innerHTML = html;
 }
+// File intentionally left blank: logic is now in app.mjs

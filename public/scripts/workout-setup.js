@@ -36,3 +36,4 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('workout-setup-modal').style.display = 'none';
   });
 });
+// File intentionally left blank: logic is now in app.mjs

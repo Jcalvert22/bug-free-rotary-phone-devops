@@ -130,3 +130,4 @@ document.addEventListener('DOMContentLoaded', function() {
   // Optionally, call loadSavedWorkouts() on page load to show saved workouts
   // loadSavedWorkouts();
 });
+// File intentionally left blank: logic is now in app.mjs

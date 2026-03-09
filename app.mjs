@@ -311,6 +311,7 @@ function renderHistoryList() {
 }
 
 app.get('/', (req, res) => {
+
   const body = `
     <section class="landing-hero panel">
       <div class="hero-intro">
@@ -318,7 +319,7 @@ app.get('/', (req, res) => {
         <h1>Structure without stress.</h1>
         <p>Pick a muscle, pick the gear you actually have, and get three calm moves with plain-English steps. Everything fits on one screen so new lifters never feel lost.</p>
         <div class="hero-actions">
-          <button class="hero-btn primary" id="startWorkoutBtn" type="button">Start Workout</button>
+          <button class="hero-btn primary" id="generateWorkoutMainBtn" type="button">Generate Workout</button>
         </div>
       </div>
       <div class="panel hero-secondary-card" style="background:rgba(255,255,255,0.03);">
@@ -331,11 +332,90 @@ app.get('/', (req, res) => {
         </ul>
       </div>
     </section>
+    <!-- Modal for Generate Workout -->
+    <button id="save-workout-btn" style="display:none;">Save Workout</button>
+    <div id="generateWorkoutModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+      <div style="background:#fff; color:#222; border-radius:12px; padding:32px; max-width:400px; margin:auto; position:relative;">
+        <h2>Setup Your Workout</h2>
+        <form id="generateWorkoutForm">
+          <div>
+            <label>Muscle Groups:</label><br>
+            <label><input type="checkbox" name="muscle" value="Chest"> Chest</label>
+            <label><input type="checkbox" name="muscle" value="Back"> Back</label>
+            <label><input type="checkbox" name="muscle" value="Legs"> Legs</label>
+            <label><input type="checkbox" name="muscle" value="Core"> Core</label>
+          </div>
+          <div style="margin-top:12px;">
+            <label>Equipment:</label><br>
+            <label><input type="checkbox" name="equipment" value="None"> None</label>
+            <label><input type="checkbox" name="equipment" value="Dumbbells"> Dumbbells</label>
+            <label><input type="checkbox" name="equipment" value="Bench"> Bench</label>
+          </div>
+          <button type="submit" id="generateWorkoutSubmitBtn" style="margin-top:18px;">Generate</button>
+          <button type="button" id="closeGenerateWorkoutModal" style="margin-left:10px;">Cancel</button>
+        </form>
+      </div>
+    </div>
+    <div id="generatedWorkout"></div>
     <section id="history" class="panel">
       <h2 style="margin-top:0;">Recent workouts</h2>
       <p style="color:var(--muted);">We keep the last five titles so you can show classmates what you generated.</p>
       ${renderHistoryList()}
     </section>
+    <script>
+    // SPA Modal and Workout Logic
+    function generateWorkout(muscles, equipment) {
+      // Returns up to 3 matching exercises from EXERCISES
+      const all = ${JSON.stringify(EXERCISES)};
+      let filtered = all.filter(e =>
+        (!muscles.length || muscles.includes(e.muscle)) &&
+        (!equipment.length || e.equipment.some(eq => equipment.includes(eq)))
+      );
+      return { exercises: filtered.slice(0, 3) };
+    }
+    function renderWorkout(workout) {
+      var container = document.getElementById('generatedWorkout');
+      container.innerHTML = '';
+      if (!workout || !workout.exercises || !workout.exercises.length) {
+        container.innerHTML = '<p>No workout generated.</p>';
+        return;
+      }
+      const html = workout.exercises.map(ex =>
+        `<div class="exercise-card">
+          <h3>${ex.name}</h3>
+          <p><strong>Muscle:</strong> ${ex.muscle} · <strong>Equipment:</strong> ${Array.isArray(ex.equipment) ? ex.equipment.join(', ') : ex.equipment}</p>
+          <p>${ex.steps}</p>
+        </div>`
+      ).join('');
+      container.innerHTML = html;
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+      var openBtn = document.getElementById('generateWorkoutMainBtn');
+      var modal = document.getElementById('generateWorkoutModal');
+      var closeBtn = document.getElementById('closeGenerateWorkoutModal');
+      var form = document.getElementById('generateWorkoutForm');
+      if (openBtn && modal) {
+        openBtn.onclick = function() {
+          modal.style.display = 'flex';
+        };
+      }
+      if (closeBtn && modal) {
+        closeBtn.onclick = function() {
+          modal.style.display = 'none';
+        };
+      }
+      if (form) {
+        form.onsubmit = function(e) {
+          e.preventDefault();
+          const muscles = Array.from(form.querySelectorAll('input[name="muscle"]:checked')).map(cb => cb.value);
+          const equipment = Array.from(form.querySelectorAll('input[name="equipment"]:checked')).map(cb => cb.value);
+          const workout = generateWorkout(muscles, equipment);
+          renderWorkout(workout);
+          modal.style.display = 'none';
+        };
+      }
+    });
+    </script>
   `;
 
   res.send(renderLayout('GymTravel · Simple Planner', body));
