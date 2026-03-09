@@ -325,16 +325,69 @@ function renderLayout(title, mainContent) {
             return;
           }
           ul.innerHTML = list.map(function(w, i) {
-            // Use single quotes for onclick and escape properly
             return '<li style="margin-bottom:10px;">Workout #' + (i+1) + ' &mdash; ' + w.exercises.length + ' exercises <button onclick="deleteWorkout(\'' + w.id + '\')" style="margin-left:12px;">Delete</button></li>';
           }).join('');
         }
+        // --- END SIMPLE CRUD ---
+        </script>
+        <script>
+        // SPA Modal and Workout Logic
+        function generateWorkout(muscles, equipment) {
+          // Returns up to 3 matching exercises from EXERCISES
+          const all = ${JSON.stringify(EXERCISES)};
+          let filtered = all.filter(e =>
+            (!muscles.length || muscles.includes(e.muscle)) &&
+            (!equipment.length || e.equipment.some(eq => equipment.includes(eq)))
+          );
+          return { exercises: filtered.slice(0, 3) };
+        }
+        function renderWorkout(workout) {
+          var container = document.getElementById('generatedWorkout');
+          container.innerHTML = '';
+          if (!workout || !workout.exercises || !workout.exercises.length) {
+            container.innerHTML = '<p>No workout generated.</p>';
+            document.getElementById('saveWorkoutBtn').style.display = 'none';
+            return;
+          }
+          const html = workout.exercises.map(function(ex) {
+            return '<article class="exercise-card" style="background:#fff;border:1px solid #bbb;border-radius:18px;padding:20px 32px;margin-bottom:16px;box-shadow:0 4px 16px rgba(0,0,0,0.10);max-width:700px;min-width:320px;width:95vw;margin-left:auto;margin-right:auto;">'
+              + '<h3 style="margin:0 0 8px;font-size:1.08rem;color:#111;font-weight:700;text-align:left;">' + ex.name + '</h3>'
+              + '<div style="margin-bottom:4px;font-size:0.97rem;color:#111;text-align:left;"><strong>Muscle:</strong> ' + ex.muscle + ' &nbsp; <strong>Equipment:</strong> ' + (Array.isArray(ex.equipment) ? ex.equipment.join(', ') : ex.equipment) + '</div>'
+              + '<div style="font-size:0.96rem;line-height:1.35;color:#111;margin-top:2px;text-align:left;">' + ex.steps + '</div>'
+            + '</article>';
+          }).join('');
+          container.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;width:100%;gap:0;">' + html + '</div>';
+          showSaveButton(workout);
+        }
         document.addEventListener('DOMContentLoaded', function() {
+          var openBtn = document.getElementById('generateWorkoutMainBtn');
+          var modal = document.getElementById('generateWorkoutModal');
+          var closeBtn = document.getElementById('closeGenerateWorkoutModal');
+          var form = document.getElementById('generateWorkoutForm');
           var saveBtn = document.getElementById('saveWorkoutBtn');
+          if (openBtn && modal) {
+            openBtn.onclick = function() {
+              modal.style.display = 'flex';
+            };
+          }
+          if (closeBtn && modal) {
+            closeBtn.onclick = function() {
+              modal.style.display = 'none';
+            };
+          }
+          if (form) {
+            form.onsubmit = function(e) {
+              e.preventDefault();
+              const muscles = Array.from(form.querySelectorAll('input[name="muscle"]:checked')).map(cb => cb.value);
+              const equipment = Array.from(form.querySelectorAll('input[name="equipment"]:checked')).map(cb => cb.value);
+              const workout = generateWorkout(muscles, equipment);
+              renderWorkout(workout);
+              modal.style.display = 'none';
+            };
+          }
           if (saveBtn) saveBtn.onclick = saveWorkout;
           loadSavedWorkouts();
         });
-        // --- END SIMPLE CRUD ---
         </script>
       </body>
     </html>
