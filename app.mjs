@@ -1,3 +1,33 @@
+// In-memory collections object
+const collections = {
+  items: [],
+  routines: [],
+  exercises: []
+};
+
+// Generic CRUD helper functions
+function createItem(collectionName, data) {
+  const item = { ...data, id: Date.now().toString() };
+  collections[collectionName].push(item);
+  return item;
+}
+function getAllItems(collectionName) {
+  return collections[collectionName].slice();
+}
+function updateItem(collectionName, id, data) {
+  const arr = collections[collectionName];
+  const idx = arr.findIndex(item => item.id == id);
+  if (idx === -1) return null;
+  arr[idx] = { ...arr[idx], ...data };
+  return arr[idx];
+}
+function deleteItem(collectionName, id) {
+  const arr = collections[collectionName];
+  const idx = arr.findIndex(item => item.id == id);
+  if (idx === -1) return false;
+  arr.splice(idx, 1);
+  return true;
+}
 import path from 'path';
 import fs from 'fs';
 import express from 'express';
@@ -439,68 +469,44 @@ function generateId() {
 //
 const routineController = {
   getAll(req, res) {
-    res.json(routines.slice().sort((a, b) => b.createdAt - a.createdAt));
+    res.json(getAllItems("routines"));
   },
   create(req, res) {
-    const { name, muscle, equipment, exercises } = req.body;
-    const routine = {
-      id: generateId(),
-      name,
-      muscle,
-      equipment,
-      exercises: Array.isArray(exercises) ? exercises : [],
-      createdAt: Date.now()
-    };
-    routines.push(routine);
-    res.status(201).json(routine);
+    res.status(201).json(createItem("routines", req.body));
   },
   update(req, res) {
     const { id } = req.params;
-    const idx = routines.findIndex(r => r.id == id);
-    if (idx === -1) return res.status(404).json({ error: 'Routine not found' });
-    const updated = { ...routines[idx], ...req.body };
-    routines[idx] = updated;
+    const updated = updateItem("routines", id, req.body);
+    if (!updated) return res.status(404).json({ error: "Routine not found" });
     res.json(updated);
   },
   remove(req, res) {
     const { id } = req.params;
-    const idx = routines.findIndex(r => r.id == id);
-    if (idx === -1) return res.status(404).json({ error: 'Routine not found' });
-    routines.splice(idx, 1);
+    const success = deleteItem("routines", id);
+    if (!success) return res.status(404).json({ error: "Routine not found" });
     res.json({ success: true });
   }
 };
 
 const exerciseController = {
   getAll(req, res) {
-    res.json(customExercises.slice().sort((a, b) => a.name.localeCompare(b.name)));
+    res.json(getAllItems("exercises").sort((a, b) => a.name.localeCompare(b.name)));
   },
   create(req, res) {
-    const { name, muscle, equipment, steps } = req.body;
-    const exercise = {
-      id: generateId(),
-      name,
-      muscle,
-      equipment: Array.isArray(equipment) ? equipment : (typeof equipment === 'string' ? equipment.split(',').map(e => e.trim()) : []),
-      steps
-    };
-    customExercises.push(exercise);
-    res.status(201).json(exercise);
+    res.status(201).json(createItem("exercises", req.body));
   },
   update(req, res) {
     const { id } = req.params;
-    const idx = customExercises.findIndex(e => e.id == id);
-    if (idx === -1) return res.status(404).json({ error: 'Exercise not found' });
-    const updated = { ...customExercises[idx], ...req.body };
-    if (typeof updated.equipment === 'string') updated.equipment = updated.equipment.split(',').map(e => e.trim());
-    customExercises[idx] = updated;
+    let data = { ...req.body };
+    if (typeof data.equipment === "string") data.equipment = data.equipment.split(",").map(e => e.trim());
+    const updated = updateItem("exercises", id, data);
+    if (!updated) return res.status(404).json({ error: "Exercise not found" });
     res.json(updated);
   },
   remove(req, res) {
     const { id } = req.params;
-    const idx = customExercises.findIndex(e => e.id == id);
-    if (idx === -1) return res.status(404).json({ error: 'Exercise not found' });
-    customExercises.splice(idx, 1);
+    const success = deleteItem("exercises", id);
+    if (!success) return res.status(404).json({ error: "Exercise not found" });
     res.json({ success: true });
   }
 };
