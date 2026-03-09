@@ -521,8 +521,7 @@ const exerciseController = {
 // =========================
 // API ROUTES (REST endpoints)
 // =========================
-import bodyParser from 'body-parser';
-app.use(bodyParser.json());
+app.use(express.json());
 
 // Routines CRUD
 app.get('/api/routines', routineController.getAll);
@@ -560,8 +559,7 @@ app.use((err, req, res, next) => {
 // =========================
 // SPA AJAX FRONT-END (public/scripts/app.js)
 // =========================
-import fs from 'fs';
-import path from 'path';
+//
 const scriptPath = path.join(process.cwd(), 'public', 'scripts', 'app.js');
 if (!fs.existsSync(scriptPath)) {
   app.get('/scripts/app.js', (req, res) => {
