@@ -340,16 +340,16 @@ app.get('/', (req, res) => {
         <form id="generateWorkoutForm" style="color:#111; text-align:left;">
           <div style="margin-bottom:14px;">
             <label style="font-weight:600; color:#111;">Muscle Groups:</label><br>
-            <label style="margin-right:12px;"><input type="checkbox" name="muscle" value="Chest"> Chest</label>
-            <label style="margin-right:12px;"><input type="checkbox" name="muscle" value="Back"> Back</label>
-            <label style="margin-right:12px;"><input type="checkbox" name="muscle" value="Legs"> Legs</label>
-            <label><input type="checkbox" name="muscle" value="Core"> Core</label>
+            <label style="margin-right:12px;"><input type="checkbox" name="muscle" value="Chest"><span style="color:#111;"> Chest</span></label>
+            <label style="margin-right:12px;"><input type="checkbox" name="muscle" value="Back"><span style="color:#111;"> Back</span></label>
+            <label style="margin-right:12px;"><input type="checkbox" name="muscle" value="Legs"><span style="color:#111;"> Legs</span></label>
+            <label><input type="checkbox" name="muscle" value="Core"><span style="color:#111;"> Core</span></label>
           </div>
           <div style="margin-bottom:18px;">
             <label style="font-weight:600; color:#111;">Equipment:</label><br>
-            <label style="margin-right:12px;"><input type="checkbox" name="equipment" value="None"> None</label>
-            <label style="margin-right:12px;"><input type="checkbox" name="equipment" value="Dumbbells"> Dumbbells</label>
-            <label><input type="checkbox" name="equipment" value="Bench"> Bench</label>
+            <label style="margin-right:12px;"><input type="checkbox" name="equipment" value="None"><span style="color:#111;"> None</span></label>
+            <label style="margin-right:12px;"><input type="checkbox" name="equipment" value="Dumbbells"><span style="color:#111;"> Dumbbells</span></label>
+            <label><input type="checkbox" name="equipment" value="Bench"><span style="color:#111;"> Bench</span></label>
           </div>
           <button type="submit" id="generateWorkoutSubmitBtn" style="margin-top:8px; margin-right:10px; background:#111; color:#fff; border-radius:8px; padding:10px 22px; font-size:1rem; font-weight:600; border:none;">Generate</button>
           <button type="button" id="closeGenerateWorkoutModal" style="margin-left:0; background:#eee; color:#111; border-radius:8px; padding:10px 22px; font-size:1rem; font-weight:600; border:none;">Cancel</button>
