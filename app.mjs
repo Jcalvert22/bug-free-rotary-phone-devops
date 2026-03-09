@@ -380,13 +380,13 @@ app.get('/', (req, res) => {
         container.innerHTML = '<p>No workout generated.</p>';
         return;
       }
-      const html = workout.exercises.map(ex =>
-        `<div class="exercise-card">
-          <h3>${ex.name}</h3>
-          <p><strong>Muscle:</strong> ${ex.muscle} · <strong>Equipment:</strong> ${Array.isArray(ex.equipment) ? ex.equipment.join(', ') : ex.equipment}</p>
-          <p>${ex.steps}</p>
-        </div>`
-      ).join('');
+      const html = workout.exercises.map(function(ex) {
+        return '<div class="exercise-card">'
+          + '<h3>' + ex.name + '</h3>'
+          + '<p><strong>Muscle:</strong> ' + ex.muscle + ' · <strong>Equipment:</strong> ' + (Array.isArray(ex.equipment) ? ex.equipment.join(', ') : ex.equipment) + '</p>'
+          + '<p>' + ex.steps + '</p>'
+        + '</div>';
+      }).join('');
       container.innerHTML = html;
     }
     document.addEventListener('DOMContentLoaded', function() {
