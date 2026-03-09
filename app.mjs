@@ -3,73 +3,7 @@ import fs from 'fs';
 import express from 'express';
 import dotenv from 'dotenv';
 dotenv.config();
-import { MongoClient, ObjectId } from 'mongodb';
 
-// MongoDB connection setup
-const client = new MongoClient(process.env.MONGO_URI, { useUnifiedTopology: true });
-let db;
-if (process.env.NODE_ENV === "production") {
-  await client.connect();
-  db = client.db();
-}
-
-function getCollection(name) {
-  if (process.env.NODE_ENV === "production") {
-    return db.collection(name);
-  }
-  return null;
-}
-
-async function createItem(collectionName, data) {
-  if (process.env.NODE_ENV === "production") {
-    const col = getCollection(collectionName);
-    const result = await col.insertOne(data);
-    return { ...data, _id: result.insertedId };
-  } else {
-    const arr = collectionName === "routines" ? routines : customExercises;
-    const item = { ...data, id: generateId() };
-    arr.push(item);
-    return item;
-  }
-}
-
-async function getAllItems(collectionName) {
-  if (process.env.NODE_ENV === "production") {
-    const col = getCollection(collectionName);
-    return await col.find({}).sort({ createdAt: -1 }).toArray();
-  } else {
-    const arr = collectionName === "routines" ? routines : customExercises;
-    return arr.slice().sort((a, b) => b.createdAt - a.createdAt);
-  }
-}
-
-async function updateItem(collectionName, id, data) {
-  if (process.env.NODE_ENV === "production") {
-    const col = getCollection(collectionName);
-    await col.updateOne({ _id: new ObjectId(id) }, { $set: data });
-    return await col.findOne({ _id: new ObjectId(id) });
-  } else {
-    const arr = collectionName === "routines" ? routines : customExercises;
-    const idx = arr.findIndex(r => r.id == id);
-    if (idx === -1) return null;
-    arr[idx] = { ...arr[idx], ...data };
-    return arr[idx];
-  }
-}
-
-async function deleteItem(collectionName, id) {
-  if (process.env.NODE_ENV === "production") {
-    const col = getCollection(collectionName);
-    await col.deleteOne({ _id: new ObjectId(id) });
-    return { success: true };
-  } else {
-    const arr = collectionName === "routines" ? routines : customExercises;
-    const idx = arr.findIndex(r => r.id == id);
-    if (idx === -1) return { success: false };
-    arr.splice(idx, 1);
-    return { success: true };
-  }
-}
 
 
 
@@ -504,65 +438,69 @@ function generateId() {
 
 //
 const routineController = {
-  async getAll(req, res) {
-    const items = await getAllItems("routines");
-    res.json(items);
+  getAll(req, res) {
+    res.json(routines.slice().sort((a, b) => b.createdAt - a.createdAt));
   },
-  async create(req, res) {
+  create(req, res) {
     const { name, muscle, equipment, exercises } = req.body;
     const routine = {
+      id: generateId(),
       name,
       muscle,
       equipment,
       exercises: Array.isArray(exercises) ? exercises : [],
       createdAt: Date.now()
     };
-    const item = await createItem("routines", routine);
-    res.status(201).json(item);
+    routines.push(routine);
+    res.status(201).json(routine);
   },
-  async update(req, res) {
+  update(req, res) {
     const { id } = req.params;
-    const updated = await updateItem("routines", id, req.body);
-    if (!updated) return res.status(404).json({ error: "Routine not found" });
+    const idx = routines.findIndex(r => r.id == id);
+    if (idx === -1) return res.status(404).json({ error: 'Routine not found' });
+    const updated = { ...routines[idx], ...req.body };
+    routines[idx] = updated;
     res.json(updated);
   },
-  async remove(req, res) {
+  remove(req, res) {
     const { id } = req.params;
-    const result = await deleteItem("routines", id);
-    if (!result.success) return res.status(404).json({ error: "Routine not found" });
+    const idx = routines.findIndex(r => r.id == id);
+    if (idx === -1) return res.status(404).json({ error: 'Routine not found' });
+    routines.splice(idx, 1);
     res.json({ success: true });
   }
 };
 
 const exerciseController = {
-  async getAll(req, res) {
-    const items = await getAllItems("customExercises");
-    items.sort((a, b) => a.name.localeCompare(b.name));
-    res.json(items);
+  getAll(req, res) {
+    res.json(customExercises.slice().sort((a, b) => a.name.localeCompare(b.name)));
   },
-  async create(req, res) {
+  create(req, res) {
     const { name, muscle, equipment, steps } = req.body;
     const exercise = {
+      id: generateId(),
       name,
       muscle,
-      equipment: Array.isArray(equipment) ? equipment : (typeof equipment === "string" ? equipment.split(",").map(e => e.trim()) : []),
+      equipment: Array.isArray(equipment) ? equipment : (typeof equipment === 'string' ? equipment.split(',').map(e => e.trim()) : []),
       steps
     };
-    const item = await createItem("customExercises", exercise);
-    res.status(201).json(item);
+    customExercises.push(exercise);
+    res.status(201).json(exercise);
   },
-  async update(req, res) {
+  update(req, res) {
     const { id } = req.params;
-    let data = { ...req.body };
-    if (typeof data.equipment === "string") data.equipment = data.equipment.split(",").map(e => e.trim());
-    const updated = await updateItem("customExercises", id, data);
-    if (!updated) return res.status(404).json({ error: "Exercise not found" });
+    const idx = customExercises.findIndex(e => e.id == id);
+    if (idx === -1) return res.status(404).json({ error: 'Exercise not found' });
+    const updated = { ...customExercises[idx], ...req.body };
+    if (typeof updated.equipment === 'string') updated.equipment = updated.equipment.split(',').map(e => e.trim());
+    customExercises[idx] = updated;
     res.json(updated);
   },
-  async remove(req, res) {
+  remove(req, res) {
     const { id } = req.params;
-    const result = await deleteItem("customExercises", id);
-    if (!result.success) return res.status(404).json({ error: "Exercise not found" });
+    const idx = customExercises.findIndex(e => e.id == id);
+    if (idx === -1) return res.status(404).json({ error: 'Exercise not found' });
+    customExercises.splice(idx, 1);
     res.json({ success: true });
   }
 };
