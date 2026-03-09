@@ -1,10 +1,3 @@
-
-// --- Start the Express server ---
-const PORT = 3000;
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:3000`);
-});
-
 // --- In-memory storage for saved workouts ---
 const WORKOUTS = [];
 
@@ -59,6 +52,7 @@ function deleteItem(collectionName, id) {
   arr.splice(idx, 1);
   return true;
 }
+
 import path from 'path';
 import fs from 'fs';
 import express from 'express';
@@ -69,7 +63,7 @@ dotenv.config();
 
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+// ...existing code...
 app.use(express.urlencoded({ extended: true }));
 app.use('/styles', express.static('styles'));
 app.use('/images', express.static('public/images'));
