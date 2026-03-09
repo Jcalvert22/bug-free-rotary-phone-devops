@@ -3,10 +3,10 @@
   "version": "2.0.0",
   "description": "All-Around Athlete SPA rebuilt as a full-stack MVC project for CIS 486.",
   "type": "module",
-  "main": "src/server.js",
+  "main": "app.mjs",
   "scripts": {
-    "dev": "nodemon src/server.js",
-    "start": "node src/server.js",
+    "dev": "nodemon app.mjs",
+    "start": "node app.mjs",
     "test": "node --test",
     "lint": "node --version"
   },
