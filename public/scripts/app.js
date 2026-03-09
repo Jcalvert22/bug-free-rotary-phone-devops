@@ -1,164 +1,135 @@
-// SPA AJAX for routines and exercises using jQuery
-$(function () {
-  // --- Routines ---
-  function renderRoutines(routines) {
-    const $list = $("#history-list");
-    if (!$list.length) return;
-    if (!routines.length) {
-      $list.html('<p style="color:var(--muted);">No saved plans yet. Generate one to see it here.</p>');
+// GymTravel SPA — Generate → Display → Save workout flow
+(function () {
+  // ── Static exercise data ──
+  var EXERCISES = [
+    { muscle: 'Chest',   equipment: ['None'],      name: 'Wall Push-ups',       steps: 'Stand an arm-length from a wall, bend elbows until nose nears the wall, press out slowly.' },
+    { muscle: 'Chest',   equipment: ['Dumbbells'], name: 'Floor Press',          steps: 'Lie on your back, press dumbbells straight up, pause, lower with control.' },
+    { muscle: 'Chest',   equipment: ['Bench'],     name: 'Incline Push-up',      steps: 'Hands on a bench, body in one line, lower chest to the edge, press up.' },
+    { muscle: 'Back',    equipment: ['None'],      name: 'Backpack Row',         steps: 'Hinge at the hips, grab a backpack, pull it toward ribs, squeeze shoulder blades.' },
+    { muscle: 'Back',    equipment: ['Dumbbells'], name: 'Bent Over Row',        steps: 'Hinge, keep back flat, row bells toward pockets, pause, lower slow.' },
+    { muscle: 'Back',    equipment: ['Bench'],     name: 'Bench Supported Row',  steps: 'One hand on a bench for balance, row the weight toward your hip.' },
+    { muscle: 'Legs',    equipment: ['None'],      name: 'Bodyweight Squat',     steps: 'Feet shoulder-width, sit back like a chair, stand tall and squeeze glutes.' },
+    { muscle: 'Legs',    equipment: ['Dumbbells'], name: 'Goblet Squat',         steps: 'Hold one dumbbell at chest, squat down, keep heels heavy, drive up.' },
+    { muscle: 'Legs',    equipment: ['Bench'],     name: 'Step-ups',             steps: 'Step onto a bench, push through the front heel, switch legs each rep.' },
+    { muscle: 'Core',    equipment: ['None'],      name: 'Plank',                steps: 'Elbows under shoulders, squeeze glutes, hold for slow breaths.' },
+    { muscle: 'Core',    equipment: ['Dumbbells'], name: 'Deadbug Hold',         steps: 'Hold a light weight over chest, lower opposite arm and leg, keep lower back down.' },
+    { muscle: 'Core',    equipment: ['Bench'],     name: 'Bench Leg Raise',      steps: 'Lie on a bench, brace, lift legs up, lower without swinging.' }
+  ];
+
+  // ── State ──
+  var currentWorkout = null;
+
+  // ── generateWorkoutV3 ──
+  function generateWorkoutV3(muscles, equipment) {
+    var filtered = EXERCISES.filter(function (e) {
+      return (!muscles.length || muscles.includes(e.muscle)) &&
+             (!equipment.length || e.equipment.some(function (eq) { return equipment.includes(eq); }));
+    });
+    return { id: Date.now().toString(), exercises: filtered.slice(0, 3) };
+  }
+
+  // ── renderGeneratedWorkout ──
+  function renderGeneratedWorkout(workout) {
+    var container = document.getElementById('generatedWorkout');
+    if (!container) return;
+    if (!workout || !workout.exercises || !workout.exercises.length) {
+      container.innerHTML = '<p>No exercises matched your selections. Try different options.</p>';
+      currentWorkout = null;
       return;
     }
-    $list.html(
-      routines
-        .map(
-          (r) =>
-            `<li data-id="${r._id}"><strong>${r.name}</strong> (${r.muscle}, ${r.equipment}) <button class="edit-btn">Edit</button> <button class="delete-btn">Delete</button></li>`
-        )
-        .join("")
-    );
+    var cards = workout.exercises.map(function (ex) {
+      return '<article style="background:#fff;border:1px solid #bbb;border-radius:18px;padding:20px 32px;margin-bottom:16px;'
+        + 'box-shadow:0 4px 16px rgba(0,0,0,0.10);max-width:700px;min-width:320px;width:95vw;margin-left:auto;margin-right:auto;">'
+        + '<h3 style="margin:0 0 8px;font-size:1.08rem;color:#111;font-weight:700;text-align:left;">' + ex.name + '</h3>'
+        + '<div style="margin-bottom:4px;font-size:0.97rem;color:#111;text-align:left;"><strong>Muscle:</strong> ' + ex.muscle
+        + ' &nbsp; <strong>Equipment:</strong> ' + (Array.isArray(ex.equipment) ? ex.equipment.join(', ') : ex.equipment) + '</div>'
+        + '<div style="font-size:0.96rem;line-height:1.35;color:#111;margin-top:2px;text-align:left;">' + ex.steps + '</div>'
+        + '</article>';
+    }).join('');
+    container.innerHTML =
+      '<div style="display:flex;flex-direction:column;align-items:center;width:100%;gap:0;">'
+      + cards
+      + '<button id="saveGeneratedWorkoutBtn" style="margin:18px 0 0 0;">Save Workout</button>'
+      + '</div>';
+    currentWorkout = workout;
   }
-  function loadRoutines() {
-    $.get("/api/routines")
-      .done(renderRoutines)
-      .fail((xhr) => console.error("Failed to load routines", xhr.responseText));
+
+  // ── createWorkout → POST /api/workouts ──
+  function createWorkout(workout) {
+    return fetch('/api/workouts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ exercises: workout.exercises })
+    }).then(function (res) { return res.json(); });
   }
-  function createRoutine(data) {
-    $.ajax({
-      url: "/api/routines",
-      method: "POST",
-      contentType: "application/json",
-      data: JSON.stringify(data),
-    })
-      .done(() => {
-        console.log("Routine created");
-        loadRoutines();
-      })
-      .fail((xhr) => console.error("Failed to create routine", xhr.responseText));
+
+  // ── loadSavedWorkouts ──
+  function loadSavedWorkouts() {
+    fetch('/api/workouts')
+      .then(function (res) { return res.json(); })
+      .then(renderSavedWorkouts);
   }
-  function updateRoutine(id, data) {
-    $.ajax({
-      url: "/api/routines/" + id,
-      method: "PUT",
-      contentType: "application/json",
-      data: JSON.stringify(data),
-    })
-      .done(() => {
-        console.log("Routine updated");
-        loadRoutines();
-      })
-      .fail((xhr) => console.error("Failed to update routine", xhr.responseText));
-  }
-  function deleteRoutine(id) {
-    $.ajax({
-      url: "/api/routines/" + id,
-      method: "DELETE",
-    })
-      .done(() => {
-        console.log("Routine deleted");
-        loadRoutines();
-      })
-      .fail((xhr) => console.error("Failed to delete routine", xhr.responseText));
-  }
-  // --- Exercises ---
-  function renderExercises(exercises) {
-    const $list = $("#exercise-list");
-    if (!$list.length) return;
-    if (!exercises.length) {
-      $list.html('<p style="color:var(--muted);">No exercises found.</p>');
+
+  // ── renderSavedWorkouts ──
+  function renderSavedWorkouts(list) {
+    var ul = document.getElementById('savedWorkoutsList');
+    if (!ul) return;
+    if (!list || !list.length) {
+      ul.innerHTML = '<li style="color:#888;">No saved workouts.</li>';
       return;
     }
-    $list.html(
-      exercises
-        .map(
-          (e) =>
-            `<li data-id="${e._id}"><strong>${e.name}</strong> (${e.muscle}, ${Array.isArray(e.equipment) ? e.equipment.join(", ") : e.equipment}) <button class="edit-ex-btn">Edit</button> <button class="delete-ex-btn">Delete</button></li>`
-        )
-        .join("")
-    );
+    ul.innerHTML = list.map(function (w, i) {
+      return '<li style="margin-bottom:10px;">Workout #' + (i + 1) + ' &mdash; ' + w.exercises.length
+        + ' exercises <button onclick="window.deleteWorkout(\'' + w.id + '\')" style="margin-left:12px;">Delete</button></li>';
+    }).join('');
   }
-  function loadExercises() {
-    $.get("/api/exercises")
-      .done(renderExercises)
-      .fail((xhr) => console.error("Failed to load exercises", xhr.responseText));
+
+  // ── deleteWorkout ──
+  function deleteWorkout(id) {
+    fetch('/api/workouts/' + encodeURIComponent(id), { method: 'DELETE' })
+      .then(function () { loadSavedWorkouts(); });
   }
-  function createExercise(data) {
-    $.ajax({
-      url: "/api/exercises",
-      method: "POST",
-      contentType: "application/json",
-      data: JSON.stringify(data),
-    })
-      .done(() => {
-        console.log("Exercise created");
-        loadExercises();
-      })
-      .fail((xhr) => console.error("Failed to create exercise", xhr.responseText));
-  }
-  function updateExercise(id, data) {
-    $.ajax({
-      url: "/api/exercises/" + id,
-      method: "PUT",
-      contentType: "application/json",
-      data: JSON.stringify(data),
-    })
-      .done(() => {
-        console.log("Exercise updated");
-        loadExercises();
-      })
-      .fail((xhr) => console.error("Failed to update exercise", xhr.responseText));
-  }
-  function deleteExercise(id) {
-    $.ajax({
-      url: "/api/exercises/" + id,
-      method: "DELETE",
-    })
-      .done(() => {
-        console.log("Exercise deleted");
-        loadExercises();
-      })
-      .fail((xhr) => console.error("Failed to delete exercise", xhr.responseText));
-  }
-  // --- Event Listeners ---
-  $("#planner-form").on("submit", function (e) {
-    e.preventDefault();
-    const data = $(this)
-      .serializeArray()
-      .reduce((acc, cur) => {
-        acc[cur.name] = cur.value;
-        return acc;
-      }, {});
-    createRoutine(data);
+
+  // ── Wire everything up after DOM is ready ──
+  document.addEventListener('DOMContentLoaded', function () {
+    var openBtn  = document.getElementById('generateWorkoutMainBtn');
+    var modal    = document.getElementById('generateWorkoutModal');
+    var closeBtn = document.getElementById('closeGenerateWorkoutModal');
+    var form     = document.getElementById('generateWorkoutForm');
+
+    if (openBtn && modal) {
+      openBtn.addEventListener('click', function () { modal.style.display = 'flex'; });
+    }
+    if (closeBtn && modal) {
+      closeBtn.addEventListener('click', function () { modal.style.display = 'none'; });
+    }
+    if (form) {
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var muscles   = Array.from(form.querySelectorAll('input[name="muscle"]:checked')).map(function (cb) { return cb.value; });
+        var equipment = Array.from(form.querySelectorAll('input[name="equipment"]:checked')).map(function (cb) { return cb.value; });
+        var workout = generateWorkoutV3(muscles, equipment);
+        renderGeneratedWorkout(workout);
+        if (modal) modal.style.display = 'none';
+      });
+    }
+
+    // Delegated click for #saveGeneratedWorkoutBtn (rendered inside #generatedWorkout)
+    document.addEventListener('click', function (e) {
+      if (e.target && e.target.id === 'saveGeneratedWorkoutBtn') {
+        if (!currentWorkout) return;
+        var snapshot = currentWorkout;
+        currentWorkout = null;
+        e.target.disabled = true;
+        e.target.textContent = 'Saving\u2026';
+        createWorkout(snapshot).then(function () {
+          document.getElementById('generatedWorkout').innerHTML = '<p>Workout saved!</p>';
+          loadSavedWorkouts();
+        });
+      }
+    });
+
+    loadSavedWorkouts();
+    window.deleteWorkout = deleteWorkout;
   });
-  $("#history-list").on("click", ".delete-btn", function () {
-    const id = $(this).closest("li").data("id");
-    if (id) deleteRoutine(id);
-  });
-  $("#history-list").on("click", ".edit-btn", function () {
-    const id = $(this).closest("li").data("id");
-    console.log("Edit routine", id);
-    // Add modal or inline editing as needed
-  });
-  $("#exercise-form").on("submit", function (e) {
-    e.preventDefault();
-    const data = $(this)
-      .serializeArray()
-      .reduce((acc, cur) => {
-        acc[cur.name] = cur.value;
-        return acc;
-      }, {});
-    if (data.equipment) data.equipment = data.equipment.split(",").map((s) => s.trim());
-    createExercise(data);
-  });
-  $("#exercise-list").on("click", ".delete-ex-btn", function () {
-    const id = $(this).closest("li").data("id");
-    if (id) deleteExercise(id);
-  });
-  $("#exercise-list").on("click", ".edit-ex-btn", function () {
-    const id = $(this).closest("li").data("id");
-    console.log("Edit exercise", id);
-    // Add modal or inline editing as needed
-  });
-  // Initial load
-  loadRoutines();
-  loadExercises();
-});
+}());

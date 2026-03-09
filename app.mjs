@@ -43,6 +43,7 @@ const PORT = process.env.PORT || 3000;
 app.use(express.urlencoded({ extended: true }));
 app.use('/styles', express.static('styles'));
 app.use('/images', express.static('public/images'));
+app.use('/scripts', express.static('public/scripts'));
 
 const MUSCLE_GROUPS = ['Chest', 'Back', 'Legs', 'Core'];
 const EQUIPMENT_OPTIONS = ['None', 'Dumbbells', 'Bench'];
@@ -288,117 +289,7 @@ function renderLayout(title, mainContent) {
         <footer>
           © ${new Date().getFullYear()} · Class-demo build
         </footer>
-        <script>
-        // --- SPA Modal, Workout, and Saved Workouts Logic ---
-        (() => {
-          let lastGeneratedWorkout = null;
-          function showSaveButton() {
-            var btn = document.getElementById('saveWorkoutBtn');
-            if (btn) btn.style.display = 'block';
-          }
-          function hideSaveButton() {
-            var btn = document.getElementById('saveWorkoutBtn');
-            if (btn) btn.style.display = 'none';
-          }
-          function generateWorkout(muscles, equipment) {
-            const all = ${JSON.stringify(EXERCISES)};
-            let filtered = all.filter(e =>
-              (!muscles.length || muscles.includes(e.muscle)) &&
-              (!equipment.length || e.equipment.some(eq => equipment.includes(eq)))
-            );
-            return { exercises: filtered.slice(0, 3) };
-          }
-          function renderWorkout(workout) {
-            var container = document.getElementById('generatedWorkout');
-            container.innerHTML = '';
-            if (!workout || !workout.exercises || !workout.exercises.length) {
-              container.innerHTML = '<p>No workout generated.</p>';
-              hideSaveButton();
-              lastGeneratedWorkout = null;
-              return;
-            }
-            const html = workout.exercises.map(function(ex) {
-              return '<article class="exercise-card" style="background:#fff;border:1px solid #bbb;border-radius:18px;padding:20px 32px;margin-bottom:16px;box-shadow:0 4px 16px rgba(0,0,0,0.10);max-width:700px;min-width:320px;width:95vw;margin-left:auto;margin-right:auto;">'
-                + '<h3 style="margin:0 0 8px;font-size:1.08rem;color:#111;font-weight:700;text-align:left;">' + ex.name + '</h3>'
-                + '<div style="margin-bottom:4px;font-size:0.97rem;color:#111;text-align:left;"><strong>Muscle:</strong> ' + ex.muscle + ' &nbsp; <strong>Equipment:</strong> ' + (Array.isArray(ex.equipment) ? ex.equipment.join(', ') : ex.equipment) + '</div>'
-                + '<div style="font-size:0.96rem;line-height:1.35;color:#111;margin-top:2px;text-align:left;">' + ex.steps + '</div>'
-              + '</article>';
-            }).join('');
-            container.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;width:100%;gap:0;">' + html + '</div>';
-            lastGeneratedWorkout = workout;
-            showSaveButton();
-          }
-          function saveWorkout() {
-            if (!lastGeneratedWorkout || !lastGeneratedWorkout.exercises) return;
-            fetch('/api/workouts', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ exercises: lastGeneratedWorkout.exercises })
-            })
-            .then(res => res.json())
-            .then(() => {
-              hideSaveButton();
-              lastGeneratedWorkout = null;
-              loadSavedWorkouts();
-            });
-          }
-          function loadSavedWorkouts() {
-            fetch('/api/workouts')
-              .then(res => res.json())
-              .then(renderSavedWorkouts);
-          }
-          function deleteWorkout(id) {
-            fetch('/api/workouts/' + encodeURIComponent(id), { method: 'DELETE' })
-              .then(() => loadSavedWorkouts());
-          }
-          function renderSavedWorkouts(list) {
-            var ul = document.getElementById('savedWorkoutsList');
-            if (!ul) return;
-            if (!list || !list.length) {
-              ul.innerHTML = '<li style="color:#888;">No saved workouts.</li>';
-              return;
-            }
-            ul.innerHTML = list.map(function(w, i) {
-              return '<li style="margin-bottom:10px;">Workout #' + (i+1) + ' &mdash; ' + w.exercises.length + ' exercises <button onclick="deleteWorkout(\'' + w.id + '\')" style="margin-left:12px;">Delete</button></li>';
-            }).join('');
-          }
-          function setupEventListeners() {
-            var openBtn = document.getElementById('generateWorkoutMainBtn');
-            var modal = document.getElementById('generateWorkoutModal');
-            var closeBtn = document.getElementById('closeGenerateWorkoutModal');
-            var form = document.getElementById('generateWorkoutForm');
-            var saveBtn = document.getElementById('saveWorkoutBtn');
-            if (openBtn && modal) {
-              openBtn.onclick = function() {
-                modal.style.display = 'flex';
-              };
-            }
-            if (closeBtn && modal) {
-              closeBtn.onclick = function() {
-                modal.style.display = 'none';
-              };
-            }
-            if (form) {
-              form.onsubmit = function(e) {
-                e.preventDefault();
-                const muscles = Array.from(form.querySelectorAll('input[name="muscle"]:checked')).map(cb => cb.value);
-                const equipment = Array.from(form.querySelectorAll('input[name="equipment"]:checked')).map(cb => cb.value);
-                const workout = generateWorkout(muscles, equipment);
-                renderWorkout(workout);
-                modal.style.display = 'none';
-              };
-            }
-            if (saveBtn) saveBtn.onclick = saveWorkout;
-          }
-          // Script is at bottom of body — DOM is already ready, no need to wait
-          setupEventListeners();
-          loadSavedWorkouts();
-          hideSaveButton();
-          // Expose for inline button delete
-          window.deleteWorkout = deleteWorkout;
-        })();
-        // --- END SPA LOGIC ---
-        </script>
+        <script src="/scripts/app.js"></script>
       </body>
     </html>
   `;
