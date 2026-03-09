@@ -335,24 +335,24 @@ app.get('/', (req, res) => {
     <!-- Modal for Generate Workout -->
     <button id="save-workout-btn" style="display:none;">Save Workout</button>
     <div id="generateWorkoutModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
-      <div style="background:#fff; color:#222; border-radius:12px; padding:32px; max-width:400px; margin:auto; position:relative;">
-        <h2>Setup Your Workout</h2>
-        <form id="generateWorkoutForm">
-          <div>
-            <label>Muscle Groups:</label><br>
-            <label><input type="checkbox" name="muscle" value="Chest"> Chest</label>
-            <label><input type="checkbox" name="muscle" value="Back"> Back</label>
-            <label><input type="checkbox" name="muscle" value="Legs"> Legs</label>
+      <div style="background:#fff; color:#111; border-radius:12px; padding:32px 28px; max-width:420px; margin:auto; position:relative; text-align:left; box-shadow:0 4px 24px rgba(0,0,0,0.13);">
+        <h2 style="color:#111; font-size:1.35rem; font-weight:700; margin:0 0 18px 0; text-align:left; letter-spacing:0.01em;">Setup Your Workout</h2>
+        <form id="generateWorkoutForm" style="color:#111; text-align:left;">
+          <div style="margin-bottom:14px;">
+            <label style="font-weight:600; color:#111;">Muscle Groups:</label><br>
+            <label style="margin-right:12px;"><input type="checkbox" name="muscle" value="Chest"> Chest</label>
+            <label style="margin-right:12px;"><input type="checkbox" name="muscle" value="Back"> Back</label>
+            <label style="margin-right:12px;"><input type="checkbox" name="muscle" value="Legs"> Legs</label>
             <label><input type="checkbox" name="muscle" value="Core"> Core</label>
           </div>
-          <div style="margin-top:12px;">
-            <label>Equipment:</label><br>
-            <label><input type="checkbox" name="equipment" value="None"> None</label>
-            <label><input type="checkbox" name="equipment" value="Dumbbells"> Dumbbells</label>
+          <div style="margin-bottom:18px;">
+            <label style="font-weight:600; color:#111;">Equipment:</label><br>
+            <label style="margin-right:12px;"><input type="checkbox" name="equipment" value="None"> None</label>
+            <label style="margin-right:12px;"><input type="checkbox" name="equipment" value="Dumbbells"> Dumbbells</label>
             <label><input type="checkbox" name="equipment" value="Bench"> Bench</label>
           </div>
-          <button type="submit" id="generateWorkoutSubmitBtn" style="margin-top:18px;">Generate</button>
-          <button type="button" id="closeGenerateWorkoutModal" style="margin-left:10px;">Cancel</button>
+          <button type="submit" id="generateWorkoutSubmitBtn" style="margin-top:8px; margin-right:10px; background:#111; color:#fff; border-radius:8px; padding:10px 22px; font-size:1rem; font-weight:600; border:none;">Generate</button>
+          <button type="button" id="closeGenerateWorkoutModal" style="margin-left:0; background:#eee; color:#111; border-radius:8px; padding:10px 22px; font-size:1rem; font-weight:600; border:none;">Cancel</button>
         </form>
       </div>
     </div>
