@@ -381,13 +381,13 @@ app.get('/', (req, res) => {
         return;
       }
       const html = workout.exercises.map(function(ex) {
-        return '<article class="exercise-card" style="background:var(--panel-light);border:1px solid var(--border);border-radius:18px;padding:24px 36px;margin-bottom:22px;box-shadow:0 8px 24px rgba(0,0,0,0.18);max-width:700px;min-width:320px;width:90vw;margin-left:auto;margin-right:auto;">'
-          + '<h3 style="margin:0 0 10px;font-size:1.1rem;color:#1a2345;letter-spacing:0.01em;">' + ex.name + '</h3>'
-          + '<div style="margin-bottom:6px;font-size:0.98rem;color:#222;"><strong>Muscle:</strong> ' + ex.muscle + ' &nbsp; <strong>Equipment:</strong> ' + (Array.isArray(ex.equipment) ? ex.equipment.join(', ') : ex.equipment) + '</div>'
-          + '<div style="font-size:0.97rem;line-height:1.45;color:#222;margin-top:2px;">' + ex.steps + '</div>'
+        return '<article class="exercise-card" style="background:#fff;border:1px solid #bbb;border-radius:18px;padding:20px 32px;margin-bottom:16px;box-shadow:0 4px 16px rgba(0,0,0,0.10);max-width:700px;min-width:320px;width:95vw;margin-left:auto;margin-right:auto;">'
+          + '<h3 style="margin:0 0 8px;font-size:1.08rem;color:#111;font-weight:700;text-align:left;">' + ex.name + '</h3>'
+          + '<div style="margin-bottom:4px;font-size:0.97rem;color:#111;text-align:left;"><strong>Muscle:</strong> ' + ex.muscle + ' &nbsp; <strong>Equipment:</strong> ' + (Array.isArray(ex.equipment) ? ex.equipment.join(', ') : ex.equipment) + '</div>'
+          + '<div style="font-size:0.96rem;line-height:1.35;color:#111;margin-top:2px;text-align:left;">' + ex.steps + '</div>'
         + '</article>';
       }).join('');
-      container.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;width:100%;">' + html + '</div>';
+      container.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;width:100%;gap:0;">' + html + '</div>';
     }
     document.addEventListener('DOMContentLoaded', function() {
       var openBtn = document.getElementById('generateWorkoutMainBtn');
