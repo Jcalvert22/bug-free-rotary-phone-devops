@@ -2,19 +2,24 @@
 // MODEL (MongoDB collections + helper functions)
 // =========================
 import { MongoClient, ObjectId } from "mongodb";
+const MONGO_URI = process.env.MONGO_URI;
 
-const uri = process.env.MONGO_URI;
-
-if (!uri) {
+if (!MONGO_URI) {
   throw new Error("❌ MONGO_URI is not defined in environment variables.");
 }
-
-if (!uri.startsWith("mongodb://") && !uri.startsWith("mongodb+srv://")) {
+if (!MONGO_URI.startsWith("mongodb://") && !MONGO_URI.startsWith("mongodb+srv://")) {
   throw new Error("❌ Invalid MongoDB URI format. Must start with mongodb:// or mongodb+srv://");
 }
 
-const client = new MongoClient(uri);
+const client = new MongoClient(MONGO_URI, { useUnifiedTopology: true });
 let db;
+async function connectDb() {
+  if (!db) {
+    await client.connect();
+    db = client.db("myDatabase");
+  }
+  return db;
+}
 
 export async function connectDb() {
   if (!db) {
