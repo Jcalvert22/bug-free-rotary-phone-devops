@@ -1,46 +1,97 @@
-// In-memory collections object
-const collections = {
-  items: [],
-  routines: [],
-  exercises: [],
-  workouts: []
-};
+import express from 'express';
+import dotenv from 'dotenv';
+import { MongoClient, ObjectId } from 'mongodb';
+dotenv.config();
 
-// Generic CRUD helper functions
-function createItem(collectionName, data) {
+const collections = { routines: [], exercises: [] };
+
+function createItem(col, data) {
   const item = { ...data, id: Date.now().toString() };
-  collections[collectionName].push(item);
+  collections[col].push(item);
   return item;
 }
-function getAllItems(collectionName) {
-  return collections[collectionName].slice();
-}
-function updateItem(collectionName, id, data) {
-  const arr = collections[collectionName];
-  const idx = arr.findIndex(item => item.id == id);
+function getAllItems(col) { return collections[col].slice(); }
+function updateItem(col, id, data) {
+  const arr = collections[col];
+  const idx = arr.findIndex(i => i.id == id);
   if (idx === -1) return null;
   arr[idx] = { ...arr[idx], ...data };
   return arr[idx];
 }
-function deleteItem(collectionName, id) {
-  const arr = collections[collectionName];
-  const idx = arr.findIndex(item => item.id == id);
+function deleteItem(col, id) {
+  const arr = collections[col];
+  const idx = arr.findIndex(i => i.id == id);
   if (idx === -1) return false;
   arr.splice(idx, 1);
   return true;
 }
-import path from 'path';
-import fs from 'fs';
-import express from 'express';
-import dotenv from 'dotenv';
-dotenv.config();
 
+// ── DataContainer — in-memory / MongoDB unified CRUD for workouts ──
+const DataContainer = (() => {
+  let _db = null;
+  const _mem = [];
 
+  function _toPublic(doc) {
+    if (!doc) return null;
+    const id = doc._id ? doc._id.toString() : doc.id;
+    const { _id, ...rest } = doc;
+    return { id, ...rest };
+  }
 
+  function _col() { return _db.collection('workouts'); }
+
+  return {
+    init(db) { _db = db || null; },
+
+    async createWorkout(data) {
+      if (_db) {
+        const result = await _col().insertOne({ ...data });
+        return _toPublic({ ...data, _id: result.insertedId });
+      }
+      const item = { ...data, id: Date.now().toString() };
+      _mem.push(item);
+      return item;
+    },
+
+    async getAllWorkouts() {
+      if (_db) return (await _col().find({}).toArray()).map(_toPublic);
+      return _mem.slice();
+    },
+
+    async updateWorkout(id, data) {
+      if (_db) {
+        try {
+          const doc = await _col().findOneAndUpdate(
+            { _id: new ObjectId(id) }, { $set: data }, { returnDocument: 'after' }
+          );
+          return doc ? _toPublic(doc) : null;
+        } catch { return null; }
+      }
+      const idx = _mem.findIndex(w => w.id === id);
+      if (idx === -1) return null;
+      _mem[idx] = { ..._mem[idx], ...data };
+      return _mem[idx];
+    },
+
+    async deleteWorkout(id) {
+      if (_db) {
+        try {
+          const result = await _col().deleteOne({ _id: new ObjectId(id) });
+          return result.deletedCount > 0;
+        } catch { return false; }
+      }
+      const idx = _mem.findIndex(w => w.id === id);
+      if (idx === -1) return false;
+      _mem.splice(idx, 1);
+      return true;
+    }
+  };
+})();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 app.use('/styles', express.static('styles'));
 app.use('/images', express.static('public/images'));
 app.use('/scripts', express.static('public/scripts'));
@@ -49,24 +100,21 @@ const MUSCLE_GROUPS = ['Chest', 'Back', 'Legs', 'Core'];
 const EQUIPMENT_OPTIONS = ['None', 'Dumbbells', 'Bench'];
 
 const EXERCISES = [
-  { muscle: 'Chest', equipment: ['None'], name: 'Wall Push-ups', steps: 'Stand an arm-length from a wall, bend elbows until nose nears the wall, press out slowly.' },
-  { muscle: 'Chest', equipment: ['Dumbbells'], name: 'Floor Press', steps: 'Lie on your back, press dumbbells straight up, pause, lower with control.' },
-  { muscle: 'Chest', equipment: ['Bench'], name: 'Incline Push-up', steps: 'Hands on a bench, body in one line, lower chest to the edge, press up.' },
-  { muscle: 'Back', equipment: ['None'], name: 'Backpack Row', steps: 'Hinge at the hips, grab a backpack, pull it toward ribs, squeeze shoulder blades.' },
-  { muscle: 'Back', equipment: ['Dumbbells'], name: 'Bent Over Row', steps: 'Hinge, keep back flat, row bells toward pockets, pause, lower slow.' },
-  { muscle: 'Back', equipment: ['Bench'], name: 'Bench Supported Row', steps: 'One hand on a bench for balance, row the weight toward your hip.' },
-  { muscle: 'Legs', equipment: ['None'], name: 'Bodyweight Squat', steps: 'Feet shoulder-width, sit back like a chair, stand tall and squeeze glutes.' },
-  { muscle: 'Legs', equipment: ['Dumbbells'], name: 'Goblet Squat', steps: 'Hold one dumbbell at chest, squat down, keep heels heavy, drive up.' },
-  { muscle: 'Legs', equipment: ['Bench'], name: 'Step-ups', steps: 'Step onto a bench, push through the front heel, switch legs each rep.' },
-  { muscle: 'Core', equipment: ['None'], name: 'Plank', steps: 'Elbows under shoulders, squeeze glutes, hold for slow breaths.' },
-  { muscle: 'Core', equipment: ['Dumbbells'], name: 'Deadbug Hold', steps: 'Hold a light weight over chest, lower opposite arm and leg, keep lower back down.' },
-  { muscle: 'Core', equipment: ['Bench'], name: 'Bench Leg Raise', steps: 'Lie on a bench, brace, lift legs up, lower without swinging.' }
+  { muscle: 'Chest', equipment: ['None'],      name: 'Wall Push-ups',      steps: 'Stand an arm-length from a wall, bend elbows until nose nears the wall, press out slowly.' },
+  { muscle: 'Chest', equipment: ['Dumbbells'], name: 'Floor Press',         steps: 'Lie on your back, press dumbbells straight up, pause, lower with control.' },
+  { muscle: 'Chest', equipment: ['Bench'],     name: 'Incline Push-up',     steps: 'Hands on a bench, body in one line, lower chest to the edge, press up.' },
+  { muscle: 'Back',  equipment: ['None'],      name: 'Backpack Row',        steps: 'Hinge at the hips, grab a backpack, pull it toward ribs, squeeze shoulder blades.' },
+  { muscle: 'Back',  equipment: ['Dumbbells'], name: 'Bent Over Row',       steps: 'Hinge, keep back flat, row bells toward pockets, pause, lower slow.' },
+  { muscle: 'Back',  equipment: ['Bench'],     name: 'Bench Supported Row', steps: 'One hand on a bench for balance, row the weight toward your hip.' },
+  { muscle: 'Legs',  equipment: ['None'],      name: 'Bodyweight Squat',    steps: 'Feet shoulder-width, sit back like a chair, stand tall and squeeze glutes.' },
+  { muscle: 'Legs',  equipment: ['Dumbbells'], name: 'Goblet Squat',        steps: 'Hold one dumbbell at chest, squat down, keep heels heavy, drive up.' },
+  { muscle: 'Legs',  equipment: ['Bench'],     name: 'Step-ups',            steps: 'Step onto a bench, push through the front heel, switch legs each rep.' },
+  { muscle: 'Core',  equipment: ['None'],      name: 'Plank',               steps: 'Elbows under shoulders, squeeze glutes, hold for slow breaths.' },
+  { muscle: 'Core',  equipment: ['Dumbbells'], name: 'Deadbug Hold',        steps: 'Hold a light weight over chest, lower opposite arm and leg, keep lower back down.' },
+  { muscle: 'Core',  equipment: ['Bench'],     name: 'Bench Leg Raise',     steps: 'Lie on a bench, brace, lift legs up, lower without swinging.' }
 ];
 
-const userState = {
-  isSubscribed: false,
-  completedPlans: []
-};
+const userState = { isSubscribed: false, completedPlans: [] };
 
 const BASE_STYLES = `
   <style>
@@ -295,7 +343,6 @@ function renderLayout(title, mainContent) {
   `;
 }
 
-// Simplified: returns first 3 matching exercises by muscle and equipment, no randomness or fallback
 function getExerciseSuggestions(muscle, equipment) {
   return EXERCISES.filter(
     e => e.muscle === muscle && e.equipment.includes(equipment)
@@ -313,8 +360,9 @@ function renderHistoryList() {
   `;
 }
 
-app.get('/', (req, res) => {
+// ── Page routes ──
 
+app.get('/', (req, res) => {
   const body = `
     <section class="landing-hero panel">
       <div class="hero-intro">
@@ -359,7 +407,6 @@ app.get('/', (req, res) => {
       </div>
     </div>
     <div id="generatedWorkout"></div>
-    <button id="saveWorkoutBtn" style="display:none; margin:18px 0 0 0;">Save Workout</button>
     <section id="savedWorkoutsSection" style="margin-top:32px;">
       <h2>Saved Workouts</h2>
       <ul id="savedWorkoutsList" style="list-style:none; padding:0; margin:0;"></ul>
@@ -370,14 +417,11 @@ app.get('/', (req, res) => {
       ${renderHistoryList()}
     </section>
   `;
-
   res.send(renderLayout('GymTravel · Simple Planner', body));
 });
 
 app.get('/subscribe', (req, res) => {
-  if (userState.isSubscribed) {
-    return res.redirect('/planner');
-  }
+  if (userState.isSubscribed) return res.redirect('/planner');
   const body = `
     <section class="panel">
       <span class="hero-tag">Mock checkout</span>
@@ -388,7 +432,6 @@ app.get('/subscribe', (req, res) => {
       </form>
     </section>
   `;
-
   res.send(renderLayout('Subscribe · GymTravel', body));
 });
 
@@ -398,12 +441,9 @@ app.post('/subscribe', (req, res) => {
 });
 
 app.get('/planner', (req, res) => {
-  if (!userState.isSubscribed) {
-    return res.redirect('/subscribe');
-  }
-  const muscleOptions = MUSCLE_GROUPS.map(group => `<option value="${group}">${group}</option>`).join('');
-  const equipmentOptions = EQUIPMENT_OPTIONS.map(option => `<option value="${option}">${option}</option>`).join('');
-
+  if (!userState.isSubscribed) return res.redirect('/subscribe');
+  const muscleOptions    = MUSCLE_GROUPS.map(g => `<option value="${g}">${g}</option>`).join('');
+  const equipmentOptions = EQUIPMENT_OPTIONS.map(o => `<option value="${o}">${o}</option>`).join('');
   const body = `
     <section class="panel">
       <span class="hero-tag">Workout builder</span>
@@ -436,18 +476,15 @@ app.get('/planner', (req, res) => {
       ${renderHistoryList()}
     </section>
   `;
-
   res.send(renderLayout('Planner · GymTravel', body));
 });
 
 app.post('/planner', (req, res) => {
-  if (!userState.isSubscribed) {
-    return res.redirect('/subscribe');
-  }
+  if (!userState.isSubscribed) return res.redirect('/subscribe');
   const { name, muscle, equipment } = req.body;
-  const rawName = cleanInput(name, 'Friend');
-  const displayName = escapeHtml(rawName);
-  const pickedMuscle = MUSCLE_GROUPS.includes(muscle) ? muscle : '';
+  const rawName        = cleanInput(name, 'Friend');
+  const displayName    = escapeHtml(rawName);
+  const pickedMuscle   = MUSCLE_GROUPS.includes(muscle) ? muscle : '';
   const pickedEquipment = EQUIPMENT_OPTIONS.includes(equipment) ? equipment : '';
   const exercises = getExerciseSuggestions(pickedMuscle, pickedEquipment);
 
@@ -464,9 +501,7 @@ app.post('/planner', (req, res) => {
 
   const historyLabel = `${rawName}'s ${pickedMuscle || 'General'} workout (${pickedEquipment || 'Any'})`;
   userState.completedPlans.unshift({ summary: historyLabel });
-  if (userState.completedPlans.length > 5) {
-    userState.completedPlans.pop();
-  }
+  if (userState.completedPlans.length > 5) userState.completedPlans.pop();
 
   const body = `
     <section class="panel">
@@ -483,96 +518,100 @@ app.post('/planner', (req, res) => {
       ${renderHistoryList()}
     </section>
   `;
-
   res.send(renderLayout('Your Plan · GymTravel', body));
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-});
+// ── API routes ──
 
 const routineController = {
-  getAll(req, res) {
-    res.json(getAllItems("routines"));
-  },
-  create(req, res) {
-    res.status(201).json(createItem("routines", req.body));
-  },
-  update(req, res) {
-    const { id } = req.params;
-    const updated = updateItem("routines", id, req.body);
+  getAll(_req, res) { res.json(getAllItems("routines")); },
+  create(req, res)  { res.status(201).json(createItem("routines", req.body)); },
+  update(req, res)  {
+    const updated = updateItem("routines", req.params.id, req.body);
     if (!updated) return res.status(404).json({ error: "Routine not found" });
     res.json(updated);
   },
-  remove(req, res) {
-    const { id } = req.params;
-    const success = deleteItem("routines", id);
+  remove(req, res)  {
+    const success = deleteItem("routines", req.params.id);
     if (!success) return res.status(404).json({ error: "Routine not found" });
     res.json({ success: true });
   }
 };
 
 const exerciseController = {
-  getAll(req, res) {
-    res.json(getAllItems("exercises").sort((a, b) => a.name.localeCompare(b.name)));
-  },
-  create(req, res) {
-    res.status(201).json(createItem("exercises", req.body));
-  },
-  update(req, res) {
-    const { id } = req.params;
+  getAll(req, res)  { res.json(getAllItems("exercises").sort((a, b) => a.name.localeCompare(b.name))); },
+  create(req, res)  { res.status(201).json(createItem("exercises", req.body)); },
+  update(req, res)  {
     let data = { ...req.body };
     if (typeof data.equipment === "string") data.equipment = data.equipment.split(",").map(e => e.trim());
-    const updated = updateItem("exercises", id, data);
+    const updated = updateItem("exercises", req.params.id, data);
     if (!updated) return res.status(404).json({ error: "Exercise not found" });
     res.json(updated);
   },
-  remove(req, res) {
-    const { id } = req.params;
-    const success = deleteItem("exercises", id);
+  remove(req, res)  {
+    const success = deleteItem("exercises", req.params.id);
     if (!success) return res.status(404).json({ error: "Exercise not found" });
     res.json({ success: true });
   }
 };
 
-app.use(express.json());
-
 app.get('/api/routines', routineController.getAll);
 app.post('/api/routines', (req, res) => {
-  // If exercises not provided, auto-generate from EXERCISES
-  let { name, muscle, equipment, exercises } = req.body;
+  let { muscle, equipment, exercises } = req.body;
   if (!exercises || !Array.isArray(exercises) || exercises.length === 0) {
-    exercises = EXERCISES.filter(e => e.muscle === muscle && e.equipment.includes(equipment)).slice(0, 3);
+    req.body.exercises = EXERCISES.filter(e => e.muscle === muscle && e.equipment.includes(equipment)).slice(0, 3);
   }
-  req.body.exercises = exercises;
   routineController.create(req, res);
 });
-app.put('/api/routines/:id', routineController.update);
+app.put('/api/routines/:id',    routineController.update);
 app.delete('/api/routines/:id', routineController.remove);
 
-app.get('/api/exercises', exerciseController.getAll);
-app.post('/api/exercises', exerciseController.create);
-app.put('/api/exercises/:id', exerciseController.update);
+app.get('/api/exercises',        exerciseController.getAll);
+app.post('/api/exercises',       exerciseController.create);
+app.put('/api/exercises/:id',    exerciseController.update);
 app.delete('/api/exercises/:id', exerciseController.remove);
 
-app.get('/api/workouts', (req, res) => {
-  res.json(getAllItems('workouts'));
+app.get('/api/workouts', async (_req, res) => {
+  res.json(await DataContainer.getAllWorkouts());
 });
-app.post('/api/workouts', (req, res) => {
-  res.status(201).json(createItem('workouts', req.body));
+app.post('/api/workouts', async (req, res) => {
+  res.status(201).json(await DataContainer.createWorkout(req.body));
 });
-app.delete('/api/workouts/:id', (req, res) => {
-  const success = deleteItem('workouts', req.params.id);
+app.put('/api/workouts/:id', async (req, res) => {
+  const updated = await DataContainer.updateWorkout(req.params.id, req.body);
+  if (!updated) return res.status(404).json({ error: 'Workout not found' });
+  res.json(updated);
+});
+app.delete('/api/workouts/:id', async (req, res) => {
+  const success = await DataContainer.deleteWorkout(req.params.id);
   if (!success) return res.status(404).json({ error: 'Workout not found' });
   res.json({ success: true });
 });
 
-app.get('/health', (req, res) => res.json({ status: 'ok' }));
+app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 
-app.use((_req, res) => {
-  res.status(404).json({ error: 'Not found' });
-});
-app.use((err, req, res, next) => {
+app.use((_req, res) => res.status(404).json({ error: 'Not found' }));
+app.use((err, _req, res, _next) => {
   console.error(err);
   res.status(err.status || 500).json({ error: err.message || 'Server error' });
 });
+
+app.listen(PORT, () => console.log(`Server is running on http://localhost:${PORT}`));
+
+// ── MongoDB init — connects if MONGODB_URI is set, otherwise in-memory ──
+(async () => {
+  const uri = process.env.MONGODB_URI;
+  if (uri) {
+    try {
+      const client = new MongoClient(uri);
+      await client.connect();
+      const dbName = process.env.MONGODB_DB || 'gymtravel';
+      DataContainer.init(client.db(dbName));
+      console.log(`MongoDB connected (${dbName})`);
+    } catch (err) {
+      console.warn('MongoDB unavailable, falling back to in-memory:', err.message);
+    }
+  } else {
+    console.log('No MONGODB_URI set — using in-memory workout store');
+  }
+})();
