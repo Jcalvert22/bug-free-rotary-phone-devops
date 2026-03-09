@@ -1,3 +1,33 @@
+import path from 'path';
+import fs from 'fs';
+import express from 'express';
+import dotenv from 'dotenv';
+dotenv.config();
+
+// --- In-memory storage for saved workouts ---
+const WORKOUTS = [];
+
+// --- API endpoints for workouts CRUD ---
+app.get('/api/workouts', (req, res) => {
+  res.json(WORKOUTS);
+});
+
+app.post('/api/workouts', (req, res) => {
+  let { exercises } = req.body;
+  if (!Array.isArray(exercises) || !exercises.length) {
+    return res.status(400).json({ error: 'No exercises provided' });
+  }
+  const workout = { id: Date.now().toString(), exercises };
+  WORKOUTS.push(workout);
+  res.status(201).json(workout);
+});
+
+app.delete('/api/workouts/:id', (req, res) => {
+  const idx = WORKOUTS.findIndex(w => w.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'Not found' });
+  WORKOUTS.splice(idx, 1);
+  res.json({ success: true });
+});
 // In-memory collections object
 const collections = {
   items: [],
