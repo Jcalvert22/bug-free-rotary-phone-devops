@@ -2,9 +2,9 @@ import path from 'path';
 import fs from 'fs';
 import express from 'express';
 
+
 const app = express();
 const PORT = process.env.PORT || 3000;
-
 app.use(express.urlencoded({ extended: true }));
 app.use('/styles', express.static('styles'));
 app.use('/images', express.static('public/images'));
@@ -260,13 +260,11 @@ function renderLayout(title, mainContent) {
   `;
 }
 
+// Simplified: returns first 3 matching exercises by muscle and equipment, no randomness or fallback
 function getExerciseSuggestions(muscle, equipment) {
-  const filtered = EXERCISES.filter(entry => {
-    const muscleMatch = muscle ? entry.muscle === muscle : true;
-    const equipmentMatch = equipment ? entry.equipment.includes(equipment) : true;
-    return muscleMatch && equipmentMatch;
-  });
-  return filtered.slice(0, 3);
+  return EXERCISES.filter(
+    e => e.muscle === muscle && e.equipment.includes(equipment)
+  ).slice(0, 3);
 }
 
 function renderHistoryList() {
