@@ -2,7 +2,7 @@
 <div id="workoutSetupModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
   <div style="background:#fff; color:#222; border-radius:12px; padding:32px; max-width:400px; margin:auto; position:relative;">
     <h2>Setup Your Workout</h2>
-    <form id="workoutSetupForm">
+    <form id="workoutSetupForm" class="workout-form">
       <div>
         <label>Muscle Groups:</label><br>
         <label><input type="checkbox" name="muscle" value="Chest"> Chest</label>
@@ -16,8 +16,8 @@
         <label><input type="checkbox" name="equipment" value="Dumbbells"> Dumbbells</label>
         <label><input type="checkbox" name="equipment" value="Bench"> Bench</label>
       </div>
-      <button type="button" id="generateWorkoutBtn" style="margin-top:18px;">Generate Workout</button>
-      <button type="button" id="closeWorkoutSetup" style="margin-left:10px;">Cancel</button>
+      <button type="button" id="generateWorkoutBtn" class="generate-btn" style="margin-top:18px;">Generate Workout</button>
+      <button type="button" id="closeWorkoutSetup" class="cancel-btn" style="margin-left:10px;">Cancel</button>
     </form>
   </div>
 </div>
