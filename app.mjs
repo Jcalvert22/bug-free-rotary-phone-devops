@@ -104,8 +104,7 @@ const exerciseController = {
 // =========================
 // API ROUTES (REST endpoints)
 // =========================
-import bodyParser from 'body-parser';
-app.use(bodyParser.json());
+// ...existing code...
 
 // Routines CRUD
 app.get('/api/routines', routineController.getAll);
