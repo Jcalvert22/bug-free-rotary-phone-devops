@@ -2,12 +2,12 @@ import path from 'path';
 import fs from 'fs';
 import express from 'express';
 import dotenv from 'dotenv';
+import e from 'express';
 dotenv.config();
 
+const app = express();
 
 const WORKOUTS = [];
-
-// --- API endpoints for workouts CRUD ---
 app.get('/api/workouts', (req, res) => {
   res.json(WORKOUTS);
 });
@@ -61,7 +61,6 @@ function deleteItem(collectionName, id) {
 }
 
 
-const app = express();
 // ...existing code...
 app.use(express.urlencoded({ extended: true }));
 app.use('/styles', express.static('styles'));
