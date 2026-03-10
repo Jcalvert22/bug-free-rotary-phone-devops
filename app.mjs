@@ -335,7 +335,7 @@ function renderLayout(title, mainContent) {
           ${mainContent}
         </main>
         <footer>
-          © ${new Date().getFullYear()} · Class-demo build
+          © ${new Date().getFullYear()} · Class-demo build · Author: Jace Calvert
         </footer>
         <script src="/scripts/app.js"></script>
       </body>
@@ -362,7 +362,7 @@ function renderHistoryList() {
 
 // ── Page routes ──
 
-app.get('/', (req, res) => {
+app.get('/', (_req, res) => {
   const body = `
     <section class="landing-hero panel">
       <div class="hero-intro">
@@ -420,7 +420,7 @@ app.get('/', (req, res) => {
   res.send(renderLayout('GymTravel · Simple Planner', body));
 });
 
-app.get('/subscribe', (req, res) => {
+app.get('/subscribe', (_req, res) => {
   if (userState.isSubscribed) return res.redirect('/planner');
   const body = `
     <section class="panel">
@@ -435,12 +435,12 @@ app.get('/subscribe', (req, res) => {
   res.send(renderLayout('Subscribe · GymTravel', body));
 });
 
-app.post('/subscribe', (req, res) => {
+app.post('/subscribe', (_req, res) => {
   userState.isSubscribed = true;
   res.redirect('/planner');
 });
 
-app.get('/planner', (req, res) => {
+app.get('/planner', (_req, res) => {
   if (!userState.isSubscribed) return res.redirect('/subscribe');
   const muscleOptions    = MUSCLE_GROUPS.map(g => `<option value="${g}">${g}</option>`).join('');
   const equipmentOptions = EQUIPMENT_OPTIONS.map(o => `<option value="${o}">${o}</option>`).join('');
@@ -539,7 +539,7 @@ const routineController = {
 };
 
 const exerciseController = {
-  getAll(req, res)  { res.json(getAllItems("exercises").sort((a, b) => a.name.localeCompare(b.name))); },
+  getAll(_req, res) { res.json(getAllItems("exercises").sort((a, b) => a.name.localeCompare(b.name))); },
   create(req, res)  { res.status(201).json(createItem("exercises", req.body)); },
   update(req, res)  {
     let data = { ...req.body };
