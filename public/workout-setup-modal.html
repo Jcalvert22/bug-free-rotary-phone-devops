@@ -1,0 +1,75 @@
+
+<!-- New Generate Workout Button and Modal -->
+<button id="generateWorkoutMainBtn" class="hero-btn primary" type="button">Generate Workout</button>
+
+<div id="generateWorkoutModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+  <div style="background:#fff; color:#222; border-radius:12px; padding:32px; max-width:400px; margin:auto; position:relative;">
+    <h2>Setup Your Workout</h2>
+    <form id="generateWorkoutForm">
+      <div>
+        <label>Muscle Groups:</label><br>
+        <label><input type="checkbox" name="muscle" value="Chest"> Chest</label>
+        <label><input type="checkbox" name="muscle" value="Back"> Back</label>
+        <label><input type="checkbox" name="muscle" value="Legs"> Legs</label>
+        <label><input type="checkbox" name="muscle" value="Core"> Core</label>
+      </div>
+      <div style="margin-top:12px;">
+        <label>Equipment:</label><br>
+        <label><input type="checkbox" name="equipment" value="None"> None</label>
+        <label><input type="checkbox" name="equipment" value="Dumbbells"> Dumbbells</label>
+        <label><input type="checkbox" name="equipment" value="Bench"> Bench</label>
+      </div>
+      <button type="submit" id="generateWorkoutSubmitBtn" style="margin-top:18px;">Generate</button>
+      <button type="button" id="closeGenerateWorkoutModal" style="margin-left:10px;">Cancel</button>
+    </form>
+  </div>
+</div>
+<div id="generatedWorkout"></div>
+<button id="save-workout-btn" style="display:none;">Save Workout</button>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var openBtn = document.getElementById('generateWorkoutMainBtn');
+  var modal = document.getElementById('generateWorkoutModal');
+  var closeBtn = document.getElementById('closeGenerateWorkoutModal');
+  var form = document.getElementById('generateWorkoutForm');
+  var output = document.getElementById('generatedWorkout');
+  if (openBtn && modal) {
+    openBtn.onclick = function() {
+      modal.style.display = 'block';
+    };
+  }
+  if (closeBtn && modal) {
+    closeBtn.onclick = function() {
+      modal.style.display = 'none';
+    };
+  }
+  if (form) {
+    form.onsubmit = function(e) {
+      e.preventDefault();
+      const muscles = Array.from(form.querySelectorAll('input[name="muscle"]:checked')).map(cb => cb.value);
+      const equipment = Array.from(form.querySelectorAll('input[name="equipment"]:checked')).map(cb => cb.value);
+      const workout = typeof generateWorkout === 'function' ? generateWorkout(muscles, equipment) : {exercises:[]};
+      renderWorkout(workout);
+      modal.style.display = 'none';
+    };
+  }
+});
+function renderWorkout(workout) {
+  var container = document.getElementById('generatedWorkout');
+  container.innerHTML = '';
+  if (!workout || !workout.exercises || !workout.exercises.length) {
+    container.innerHTML = '<p>No workout generated.</p>';
+    return;
+  }
+  const html = workout.exercises.map(ex =>
+    `<div class="exercise-card">
+      <h3>${ex.name}</h3>
+      <p><strong>Muscle:</strong> ${ex.muscle} · <strong>Equipment:</strong> ${Array.isArray(ex.equipment) ? ex.equipment.join(', ') : ex.equipment}</p>
+      <p>${ex.steps}</p>
+    </div>`
+  ).join('');
+  container.innerHTML = html;
+}
+</script>
+<!-- File intentionally left blank: logic is now in app.mjs -->
