@@ -58,6 +58,16 @@ const DataContainer = (() => {
       return _mem.slice();
     },
 
+    async getWorkout(id) {
+      if (_db) {
+        try {
+          const doc = await _col().findOne({ _id: new ObjectId(id) });
+          return doc ? _toPublic(doc) : null;
+        } catch { return null; }
+      }
+      return _mem.find(w => w.id === id) || null;
+    },
+
     async updateWorkout(id, data) {
       if (_db) {
         try {
@@ -573,6 +583,11 @@ app.delete('/api/exercises/:id', exerciseController.remove);
 
 app.get('/api/workouts', async (_req, res) => {
   res.json(await DataContainer.getAllWorkouts());
+});
+app.get('/api/workouts/:id', async (req, res) => {
+  const workout = await DataContainer.getWorkout(req.params.id);
+  if (!workout) return res.status(404).json({ error: 'Workout not found' });
+  res.json(workout);
 });
 app.post('/api/workouts', async (req, res) => {
   res.status(201).json(await DataContainer.createWorkout(req.body));
