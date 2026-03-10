@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git checkout --ours app.mjs)",
+      "Bash(git add app.mjs)"
+    ]
+  }
+}

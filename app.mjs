@@ -1,102 +1,10 @@
 import express from 'express';
 import dotenv from 'dotenv';
-import { MongoClient, ObjectId } from 'mongodb';
 dotenv.config();
 
-const collections = { routines: [], exercises: [] };
-
-function createItem(col, data) {
-  const item = { ...data, id: Date.now().toString() };
-  collections[col].push(item);
-  return item;
-}
-function getAllItems(col) { return collections[col].slice(); }
-function updateItem(col, id, data) {
-  const arr = collections[col];
-  const idx = arr.findIndex(i => i.id == id);
-  if (idx === -1) return null;
-  arr[idx] = { ...arr[idx], ...data };
-  return arr[idx];
-}
-function deleteItem(col, id) {
-  const arr = collections[col];
-  const idx = arr.findIndex(i => i.id == id);
-  if (idx === -1) return false;
-  arr.splice(idx, 1);
-  return true;
-}
-
-// ── DataContainer — in-memory / MongoDB unified CRUD for workouts ──
-const DataContainer = (() => {
-  let _db = null;
-  const _mem = [];
-
-  function _toPublic(doc) {
-    if (!doc) return null;
-    const id = doc._id ? doc._id.toString() : doc.id;
-    const { _id, ...rest } = doc;
-    return { id, ...rest };
-  }
-
-  function _col() { return _db.collection('workouts'); }
-
-  return {
-    init(db) { _db = db || null; },
-
-    async createWorkout(data) {
-      if (_db) {
-        const result = await _col().insertOne({ ...data });
-        return _toPublic({ ...data, _id: result.insertedId });
-      }
-      const item = { ...data, id: Date.now().toString() };
-      _mem.push(item);
-      return item;
-    },
-
-    async getAllWorkouts() {
-      if (_db) return (await _col().find({}).toArray()).map(_toPublic);
-      return _mem.slice();
-    },
-
-    async getWorkout(id) {
-      if (_db) {
-        try {
-          const doc = await _col().findOne({ _id: new ObjectId(id) });
-          return doc ? _toPublic(doc) : null;
-        } catch { return null; }
-      }
-      return _mem.find(w => w.id === id) || null;
-    },
-
-    async updateWorkout(id, data) {
-      if (_db) {
-        try {
-          const doc = await _col().findOneAndUpdate(
-            { _id: new ObjectId(id) }, { $set: data }, { returnDocument: 'after' }
-          );
-          return doc ? _toPublic(doc) : null;
-        } catch { return null; }
-      }
-      const idx = _mem.findIndex(w => w.id === id);
-      if (idx === -1) return null;
-      _mem[idx] = { ..._mem[idx], ...data };
-      return _mem[idx];
-    },
-
-    async deleteWorkout(id) {
-      if (_db) {
-        try {
-          const result = await _col().deleteOne({ _id: new ObjectId(id) });
-          return result.deletedCount > 0;
-        } catch { return false; }
-      }
-      const idx = _mem.findIndex(w => w.id === id);
-      if (idx === -1) return false;
-      _mem.splice(idx, 1);
-      return true;
-    }
-  };
-})();
+// In-memory workout store (dev only — resets on restart)
+const devSaved = [];
+let nextId = 1;
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -531,76 +439,26 @@ app.post('/planner', (req, res) => {
   res.send(renderLayout('Your Plan · GymTravel', body));
 });
 
-// ── API routes ──
+// ── Workout API (in-memory) ──
 
-const routineController = {
-  getAll(_req, res) { res.json(getAllItems("routines")); },
-  create(req, res)  { res.status(201).json(createItem("routines", req.body)); },
-  update(req, res)  {
-    const updated = updateItem("routines", req.params.id, req.body);
-    if (!updated) return res.status(404).json({ error: "Routine not found" });
-    res.json(updated);
-  },
-  remove(req, res)  {
-    const success = deleteItem("routines", req.params.id);
-    if (!success) return res.status(404).json({ error: "Routine not found" });
-    res.json({ success: true });
-  }
-};
-
-const exerciseController = {
-  getAll(_req, res) { res.json(getAllItems("exercises").sort((a, b) => a.name.localeCompare(b.name))); },
-  create(req, res)  { res.status(201).json(createItem("exercises", req.body)); },
-  update(req, res)  {
-    let data = { ...req.body };
-    if (typeof data.equipment === "string") data.equipment = data.equipment.split(",").map(e => e.trim());
-    const updated = updateItem("exercises", req.params.id, data);
-    if (!updated) return res.status(404).json({ error: "Exercise not found" });
-    res.json(updated);
-  },
-  remove(req, res)  {
-    const success = deleteItem("exercises", req.params.id);
-    if (!success) return res.status(404).json({ error: "Exercise not found" });
-    res.json({ success: true });
-  }
-};
-
-app.get('/api/routines', routineController.getAll);
-app.post('/api/routines', (req, res) => {
-  let { muscle, equipment, exercises } = req.body;
-  if (!exercises || !Array.isArray(exercises) || exercises.length === 0) {
-    req.body.exercises = EXERCISES.filter(e => e.muscle === muscle && e.equipment.includes(equipment)).slice(0, 3);
-  }
-  routineController.create(req, res);
+app.get('/api/workouts', (_req, res) => {
+  res.json(devSaved);
 });
-app.put('/api/routines/:id',    routineController.update);
-app.delete('/api/routines/:id', routineController.remove);
-
-app.get('/api/exercises',        exerciseController.getAll);
-app.post('/api/exercises',       exerciseController.create);
-app.put('/api/exercises/:id',    exerciseController.update);
-app.delete('/api/exercises/:id', exerciseController.remove);
-
-app.get('/api/workouts', async (_req, res) => {
-  res.json(await DataContainer.getAllWorkouts());
-});
-app.get('/api/workouts/:id', async (req, res) => {
-  const workout = await DataContainer.getWorkout(req.params.id);
+app.get('/api/workouts/:id', (req, res) => {
+  const workout = devSaved.find(w => w.id === req.params.id);
   if (!workout) return res.status(404).json({ error: 'Workout not found' });
   res.json(workout);
 });
-app.post('/api/workouts', async (req, res) => {
-  res.status(201).json(await DataContainer.createWorkout(req.body));
+app.post('/api/workouts', (req, res) => {
+  const workout = { id: String(nextId++), ...req.body };
+  devSaved.push(workout);
+  res.status(201).json(workout);
 });
-app.put('/api/workouts/:id', async (req, res) => {
-  const updated = await DataContainer.updateWorkout(req.params.id, req.body);
-  if (!updated) return res.status(404).json({ error: 'Workout not found' });
-  res.json(updated);
-});
-app.delete('/api/workouts/:id', async (req, res) => {
-  const success = await DataContainer.deleteWorkout(req.params.id);
-  if (!success) return res.status(404).json({ error: 'Workout not found' });
-  res.json({ success: true });
+app.delete('/api/workouts/:id', (req, res) => {
+  const idx = devSaved.findIndex(w => w.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'Workout not found' });
+  const [removed] = devSaved.splice(idx, 1);
+  res.json(removed);
 });
 
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
@@ -612,21 +470,3 @@ app.use((err, _req, res, _next) => {
 });
 
 app.listen(PORT, () => console.log(`Server is running on http://localhost:${PORT}`));
-
-// ── MongoDB init — connects if MONGODB_URI is set, otherwise in-memory ──
-(async () => {
-  const uri = process.env.MONGODB_URI;
-  if (uri) {
-    try {
-      const client = new MongoClient(uri);
-      await client.connect();
-      const dbName = process.env.MONGODB_DB || 'gymtravel';
-      DataContainer.init(client.db(dbName));
-      console.log(`MongoDB connected (${dbName})`);
-    } catch (err) {
-      console.warn('MongoDB unavailable, falling back to in-memory:', err.message);
-    }
-  } else {
-    console.log('No MONGODB_URI set — using in-memory workout store');
-  }
-})();
